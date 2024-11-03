@@ -1,15 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
 
-*{
+* {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     font-family: "Poppins", sans-serif;
 }
 
-body{
+body {
     display: flex;
-    justify-content: center; /* membuat isi body ditengah */
+    justify-content: center; /* Center content */
     align-items: center;
     min-height: 100vh;
     background: url('bg.jpg') no-repeat;
@@ -17,83 +17,108 @@ body{
     background-position: center;
 }
 
-.wrapper{
- width: 420px;
- background: transparent;
- border: 2px solid #fff;
- backdrop-filter: blur(20px);
- box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
- color: #fff;
- border-radius: 10px;
- padding: 30px 40px;
+.wrapper {
+    width: 420px;
+    background: rgba(255, 255, 255, 0.8); /* Background with slight transparency */
+    border: 2px solid #ddd;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    color: #333;
+    border-radius: 10px;
+    padding: 30px 40px;
 }
 
-/* untuk desain teks login */
-.wrapper h1{
+/* Header styles */
+.wrapper h1 {
     font-size: 36px;
     text-align: center;
+    color: #333; /* Darker color for the header */
 }
 
-.wrapper .input-box{
+.wrapper .input-box {
     position: relative;
     width: 100%;
     height: 50px;
-    margin: 30px 0; /* jarak */
+    margin: 30px 0; /* Spacing */
 }
 
-.input-box input{
+.input-box input {
     width: 100%;
     height: 100%;
-    background: pink;
-    border: none;
+    background: #f5f5f5; /* Light grey background */
+    border: 2px solid #ddd; /* Light border */
     outline: none;
-    border: 2px solid #fff;
-    border-radius: 40px;
+    border-radius: 5px; /* Rounded corners */
     font-size: 16px;
-    color: #ed0e9b;
-    padding: 20px 45px 20px 20px;
+    color: #333; /* Dark text color */
+    padding: 10px 15px; /* Padding inside input */
+    padding-right: 40px; /* Space for the icon on the right */
 }
 
-.input-box input::placeholder{
-    color: #d57fa2;
+.input-box input::placeholder {
+    color: #999; /* Placeholder color */
 }
 
-.input-box i{
+.input-box i {
     position: absolute;
-    right: 20px;
+    right: 20px; /* Jarak dari tepi kanan input */
     top: 50%;
     transform: translateY(-50%);
-    font-size: 20px;
+    font-size: 20px; /* Ukuran ikon */
+    color: #888; /* Warna ikon */
 }
 
-.wrapper .btn{
+.input-box span {
+    position: absolute;
+    right: -1px; /* Jarak dari tepi kanan input */
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer; /* Mengubah kursor menjadi pointer saat hover */
+    font-size: 20px; /* Ukuran yang sama dengan ikon email */
+    color: #888; /* Warna ikon */
+}
+
+.wrapper .btn {
     width: 100%;
     height: 45px;
-    background: #fff;
+    background: #007BFF; /* Primary button color */
     border: none;
     outline: none;
-    border-radius: 40px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, .1);
+    border-radius: 5px; /* Rounded corners */
     cursor: pointer;
     font-size: 16px;
-    color: #333;
+    color: #fff; /* White text */
     font-weight: 600;
+    transition: background 0.3s; /* Transition for hover effect */
 }
 
-.wrapper .register-link{
+.wrapper .btn:hover {
+    background: #0056b3; /* Darker shade on hover */
+}
+
+.wrapper .register-link {
     font-size: 14.5px;
     text-align: center;
     margin: 20px 0 15px;
 }
 
-.register-link p a{
-    color: #fff;
+.register-link {
+    display: flex; /* Menggunakan flexbox untuk layout */
+    justify-content: space-between; /* Memisahkan elemen ke kiri dan kanan */
+    font-size: 14.5px;
+    text-align: center;
+    margin: 20px 0 15px;
+}
+
+.register-link p {
+    margin: 0; /* Menghapus margin default pada paragraf */
+}
+
+.register-link p a {
+    color: #007BFF; /* Warna link */
     text-decoration: none;
     font-weight: 600;
 }
 
-.register-link p a:hover{
-    text-decoration: underline;
+.register-link p a:hover {
+    text-decoration: underline; /* Garis bawah saat hover */
 }
-
-
