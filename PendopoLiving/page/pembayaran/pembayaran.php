@@ -16,7 +16,6 @@ function formatRupiah($angka) {
                     <table class="table table-striped table-bordered table-hover" id="dataTables-example">
                         <thead>
                             <tr>
-                                <th>No</th>
                                 <th>idPembayaran</th>
                                 <th>Tanggal Pembayaran</th>
                                 <th>Batas Pembayaran</th>

@@ -47,11 +47,11 @@
           <li><a href="#about">About</a></li>
           <li><a href="#team">Data Kamar</a></li> 
           <li><a href="#testimonials">Fasilitas Kamar</a></li>
-          <li><a href="daftar.php">Register</a></li>
-          <li><a href="login.php">Login</a></li>
+          <!-- <li><a href="daftar.php">Register</a></li> -->
           <li><a href="#pemesanan">Pemesanan</a></li>
-          <li><a href="#laporan">Laporan</a></li>
+          <!-- <li><a href="#laporan">Laporan</a></li> -->
           <li><a href="#contact">Contact</a></li>
+          <li><a href="login.php">Login</a></li>
         </ul>
         <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
       </nav>
