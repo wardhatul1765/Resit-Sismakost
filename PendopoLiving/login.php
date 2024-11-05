@@ -1,13 +1,12 @@
 <?php
 session_start();
-require 'koneksi.php';  // Menggunakan koneksi yang sudah ada
+require 'koneksi.php';
 
-$message = ''; // Variabel untuk menyimpan pesan
+$message = '';
 
-// Tampilkan pesan dari session jika ada
 if (isset($_SESSION['message'])) {
     $message = $_SESSION['message'];
-    unset($_SESSION['message']); // Hapus pesan setelah ditampilkan
+    unset($_SESSION['message']);
 }
 
 if (isset($_POST['login'])) {
@@ -19,15 +18,13 @@ if (isset($_POST['login'])) {
     $data = $sql->fetch_assoc();
     
     if ($data) {
-        // Memeriksa password yang di-hash
         if (password_verify($password, $data['password'])) {
-            // Simpan ID penyewa ke dalam session
-            $_SESSION['penyewa_id'] = $data['id']; // Sesuaikan jika kolom ID di penyewa adalah 'id'
-            $_SESSION['user_name'] = $data['nama_depan']; // Simpan nama depan jika ingin menampilkan nama pengguna
+            $_SESSION['penyewa_id'] = $data['id'];
+            $_SESSION['user_name'] = $data['nama_depan'];
 
-            // Redirect ke halaman utama atau halaman yang sesuai setelah login
-            header("location:index.php");
-            exit(); // Pastikan untuk menghentikan eksekusi script setelah redirect
+            // Redirect ke halaman dashboard setelah login
+            header("location:dashboard.php");
+            exit();
         } else {
             $message = "Password salah.";
         }
@@ -36,6 +33,7 @@ if (isset($_POST['login'])) {
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -79,8 +77,8 @@ if (isset($_POST['login'])) {
                 </span>
             </div>
 
-            <button type="submit" class="btn" name="login">Login</button>
-
+            <button type="submit" class="btn" name="login">login</button>
+            
             <div class="register-link">
                 <p>Tidak punya akun? <a href="register.php">Daftar</a></p>
                 <p>Lupa password? <a href="lupa_password.php">Klik disini</a></p>
