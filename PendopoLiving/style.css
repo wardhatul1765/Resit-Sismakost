@@ -1,25 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
 
-<<<<<<< HEAD
-*{
-=======
 * {
->>>>>>> 97ddaff488e5f69b89d0db42fb818e930cec56d7
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     font-family: "Poppins", sans-serif;
 }
 
-<<<<<<< HEAD
-body{
-    display: flex;
-    justify-content: center; /* membuat isi body ditengah */
-=======
 body {
     display: flex;
     justify-content: center; /* Center content */
->>>>>>> 97ddaff488e5f69b89d0db42fb818e930cec56d7
     align-items: center;
     min-height: 100vh;
     background: url('bg.jpg') no-repeat;
@@ -27,72 +17,6 @@ body {
     background-position: center;
 }
 
-<<<<<<< HEAD
-.wrapper{
- width: 420px;
- background: transparent;
- border: 2px solid #fff;
- backdrop-filter: blur(20px);
- box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
- color: #fff;
- border-radius: 10px;
- padding: 30px 40px;
-}
-
-/* untuk desain teks login */
-.wrapper h1{
-    font-size: 36px;
-    text-align: center;
-}
-
-.wrapper .input-box{
-    position: relative;
-    width: 100%;
-    height: 50px;
-    margin: 30px 0; /* jarak */
-}
-
-.input-box input{
-    width: 100%;
-    height: 100%;
-    background: pink;
-    border: none;
-    outline: none;
-    border: 2px solid #fff;
-    border-radius: 40px;
-    font-size: 16px;
-    color: #ed0e9b;
-    padding: 20px 45px 20px 20px;
-}
-
-.input-box input::placeholder{
-    color: #d57fa2;
-}
-
-.input-box i{
-    position: absolute;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 20px;
-}
-
-.wrapper .btn{
-    width: 100%;
-    height: 45px;
-    background: #fff;
-    border: none;
-    outline: none;
-    border-radius: 40px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, .1);
-    cursor: pointer;
-    font-size: 16px;
-    color: #333;
-    font-weight: 600;
-}
-
-.wrapper .register-link{
-=======
 .wrapper {
     width: 420px;
     background: rgba(255, 255, 255, 0.8); /* Background with slight transparency */
@@ -172,16 +96,11 @@ body {
 }
 
 .wrapper .register-link {
->>>>>>> 97ddaff488e5f69b89d0db42fb818e930cec56d7
     font-size: 14.5px;
     text-align: center;
     margin: 20px 0 15px;
 }
 
-<<<<<<< HEAD
-.register-link p a{
-    color: #fff;
-=======
 .register-link {
     display: flex; /* Menggunakan flexbox untuk layout */
     justify-content: space-between; /* Memisahkan elemen ke kiri dan kanan */
@@ -196,19 +115,10 @@ body {
 
 .register-link p a {
     color: #007BFF; /* Warna link */
->>>>>>> 97ddaff488e5f69b89d0db42fb818e930cec56d7
     text-decoration: none;
     font-weight: 600;
 }
 
-<<<<<<< HEAD
-.register-link p a:hover{
-    text-decoration: underline;
-}
-
-
-=======
 .register-link p a:hover {
     text-decoration: underline; /* Garis bawah saat hover */
 }
->>>>>>> 97ddaff488e5f69b89d0db42fb818e930cec56d7

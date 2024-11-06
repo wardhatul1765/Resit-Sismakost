@@ -68,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <button type="submit" class="btn">Daftar</button>
 
             <?php if ($message): ?>
-                <p style="color: red;"><?php echo $message; ?></p>
+                <p style="color: green;"><?php echo $message; ?></p>
             <?php endif; ?>
         </form>
 
