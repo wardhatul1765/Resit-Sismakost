@@ -42,7 +42,11 @@ body {
     border:1px solid #f3f3f3;
 }
 h2 {
+<<<<<<< HEAD
     color: rgb(252, 86, 155);
+=======
+    color: #f00;
+>>>>>>> 97ddaff488e5f69b89d0db42fb818e930cec56d7
 }
 h4 {
     padding-top:10px;

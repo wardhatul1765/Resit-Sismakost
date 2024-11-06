@@ -25,7 +25,10 @@ if ($koneksi->connect_error) {
     <!-- Font Awesome Styles -->
     <link href="assets/css/font-awesome.css" rel="stylesheet" />
     <!-- Custom Styles -->
+<<<<<<< HEAD
      <link rel="stylesheet" href="style.css">
+=======
+>>>>>>> 97ddaff488e5f69b89d0db42fb818e930cec56d7
     <link href="assets/css/custom.css" rel="stylesheet" />
     <!-- Google Fonts -->
     <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
@@ -38,7 +41,11 @@ if ($koneksi->connect_error) {
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".sidebar-collapse">
                     <span class="sr-only">Toggle navigation</span>
+<<<<<<< HEAD
                     <span class="icon-bar">jul</span>
+=======
+                    <span class="icon-bar"></span>
+>>>>>>> 97ddaff488e5f69b89d0db42fb818e930cec56d7
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
@@ -70,10 +77,14 @@ if ($koneksi->connect_error) {
                         <a href="?page=penyewa"><i class="fa fa-book fa-2x"></i> Penyewa</a>
                     </li>
                     <li>
+<<<<<<< HEAD
                         <a href="?page=pemesanan"><i class="fa fa-book fa-2x"></i> Pemesanan</a>
                     </li>
                     <li>
                         <a href="?page=pembayaran"><i class="fa fa-book fa-2x"></i> Pembayaran</a>
+=======
+                        <a href="?page=penyewa"><i class="fa fa-book fa-2x"></i> Pemesanan</a>
+>>>>>>> 97ddaff488e5f69b89d0db42fb818e930cec56d7
                     </li>
                 </ul>
             </div>
@@ -95,7 +106,11 @@ if ($koneksi->connect_error) {
                                     include "page/fasilitas/fasilitas.php";
                                 } elseif ($aksi == "tambah") {
                                     include "page/fasilitas/tambah.php";
+<<<<<<< HEAD
                                 } elseif ($aksi == "edit") {
+=======
+                                } elseif ($aksi == "ubah") {
+>>>>>>> 97ddaff488e5f69b89d0db42fb818e930cec56d7
                                     include "page/fasilitas/edit.php";
                                 } elseif ($aksi == "hapus") {
                                     include "page/fasilitas/hapus.php";
@@ -106,8 +121,13 @@ if ($koneksi->connect_error) {
                                     include "page/kamar/kamar.php";
                                 } elseif ($aksi == "tambah") {
                                     include "page/kamar/tambah.php";
+<<<<<<< HEAD
                                 } elseif ($aksi == "edeit") {
                                     include "page/kamar/edit.php";
+=======
+                                } elseif ($aksi == "ubah") {
+                                    include "page/kamar/ubah.php";
+>>>>>>> 97ddaff488e5f69b89d0db42fb818e930cec56d7
                                 } elseif ($aksi == "hapus") {
                                     include "page/kamar/hapus.php";
                                 }
@@ -117,6 +137,7 @@ if ($koneksi->connect_error) {
                                     include "page/penyewa/datapenyewa.php";
                                 } elseif ($aksi == "tambah") {
                                     include "page/penyewa/tambahpenyewa.php";
+<<<<<<< HEAD
                                 } elseif ($aksi == "edit") {
                                     include "page/penyewa/edit.php";
                                 } elseif ($aksi == "hapus") {
@@ -144,6 +165,13 @@ if ($koneksi->connect_error) {
                                 } elseif ($aksi == "hapus") {
                                     include "page/pembayaran/hapus.php";
                                 }
+=======
+                                } elseif ($aksi == "ubah") {
+                                    include "page/penyewa/ubah.php";
+                                } elseif ($aksi == "hapus") {
+                                    include "page/penyewa/hapus.php";
+                                }
+>>>>>>> 97ddaff488e5f69b89d0db42fb818e930cec56d7
                         }
                         ?>
                     </div>

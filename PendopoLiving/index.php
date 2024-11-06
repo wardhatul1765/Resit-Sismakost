@@ -5,7 +5,11 @@
 <head>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
+<<<<<<< HEAD
   <title>Web Loker - By Elisa</title>
+=======
+  <title>Web kostelisa</title>
+>>>>>>> 97ddaff488e5f69b89d0db42fb818e930cec56d7
   <meta content="" name="description">
   <meta content="" name="keywords">
 
@@ -47,11 +51,19 @@
           <li><a href="#about">About</a></li>
           <li><a href="#team">Data Kamar</a></li> 
           <li><a href="#testimonials">Fasilitas Kamar</a></li>
+<<<<<<< HEAD
           <li><a href="daftar.php">Register</a></li>
           <li><a href="login.php">Login</a></li>
           <li><a href="#pemesanan">Pemesanan</a></li>
           <li><a href="#laporan">Laporan</a></li>
           <li><a href="#contact">Contact</a></li>
+=======
+          <!-- <li><a href="daftar.php">Register</a></li> -->
+          <li><a href="#pemesanan">Pemesanan</a></li>
+          <!-- <li><a href="#laporan">Laporan</a></li> -->
+          <li><a href="#contact">Contact</a></li>
+          <li><a href="login.php">Login</a></li>
+>>>>>>> 97ddaff488e5f69b89d0db42fb818e930cec56d7
         </ul>
         <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
       </nav>
@@ -345,6 +357,7 @@
       <div class="row gy-4">
         <div class="col-lg-4 col-md-6 footer-about">
           <a href="index.html" class="d-flex align-items-center">
+<<<<<<< HEAD
             <span class="sitename">Elisa</span>
           </a>
           <div class="footer-contact pt-3">
@@ -352,6 +365,15 @@
             <p>Bondowoso, Jawa Timur</p>
             <p class="mt-3"><strong>Phone:</strong> <span>083134628726</span></p>
             <p><strong>Email:</strong> <span>elisaoktaviana985@gmail.com</span></p>
+=======
+            <span class="sitename">TIM RESIT</span>
+          </a>
+          <div class="footer-contact pt-3">
+            <p>TIM Resit</p>
+            <p>Jember, Jawa Timur</p>
+            <p class="mt-3"><strong>Phone:</strong> <span>085707308476</span></p>
+            <p><strong>Email:</strong> <span>kakapatria22@gmail.com</span></p>
+>>>>>>> 97ddaff488e5f69b89d0db42fb818e930cec56d7
           </div>
         </div>
 
