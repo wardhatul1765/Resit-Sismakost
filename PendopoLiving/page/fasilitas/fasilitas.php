@@ -4,7 +4,6 @@ function formatRupiah($angka) {
 }
 ?>
 
-
 <div class="row">
     <div class="col-md-12">
         <!-- Advanced Tables -->
@@ -19,7 +18,6 @@ function formatRupiah($angka) {
                             <tr>
                                 <th>No</th>
                                 <th>Nama Fasilitas</th>
-                                <th>Stock</th>
                                 <th>Biaya Tambahan</th>
                                 <th>Aksi</th>
                             </tr>
@@ -32,19 +30,16 @@ function formatRupiah($angka) {
                                 if ($sql === false) {
                                     echo "<tr><td colspan='4'>Error: " . $koneksi->error . "</td></tr>";
                                 } else {
-                                  
                                     while ($data = $sql->fetch_assoc()) {
-                                    ?>
+                            ?>
                                         <tr class="odd gradeX">
                                             <td><?php echo $no++; ?></td>
                                             <td><?php echo $data['namaFasilitas']; ?></td>
-                                            <td><?php echo $data['Stok']; ?></td>
                                             <td><?php echo formatRupiah($data['biayaTambahan']); ?></td>
                                             <td>
                                                 <a href="?page=fasilitas&aksi=ubah&idFasilitas=<?php echo $data['idFasilitas'];?>" class="btn btn-primary">Edit</a>
                                                 <a onclick="return confirm('Apakah Anda Yakin Akan Menghapus Data ini..?')" 
                                                 href="?page=fasilitas&aksi=hapus&idFasilitas=<?php echo $data['idFasilitas'];?>" class="btn btn-danger">Hapus</a>
-
                                             </td>
                                         </tr>
                             <?php 
@@ -60,9 +55,7 @@ function formatRupiah($angka) {
                     <i class="fa fa-plus"></i> Tambah
                 </a>
                 
+            </div>
         </div>
-        <!-- End Advanced Tables -->
     </div>
 </div>
-
-

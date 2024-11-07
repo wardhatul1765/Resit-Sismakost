@@ -107,7 +107,7 @@ if ($koneksi->connect_error) {
                 if ($aksi == "") {
                     include "page/kamar/kamar.php";
                 } elseif ($aksi == "tambah") {
-                    include "page/kamar/tambah.php";
+                    include "page/kamar/tambahkamar.php";
                 } elseif ($aksi == "edit") {
                     include "page/kamar/edit.php";
                 } elseif ($aksi == "hapus") {

@@ -22,16 +22,24 @@ function formatRupiah($angka) {
                                 <th>Harga</th>
                                 <th>Status</th>
                                 <th>Foto</th>
+                                <th>Fasilitas</th>
+                                <th>Blok</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php
                                 $no = 1;
-                                $sql = $koneksi->query("SELECT * FROM kamar");
+                                // Query untuk mengambil data kamar beserta fasilitas dan blok
+                                $sql = $koneksi->query("
+                                    SELECT kamar.*, fasilitas.namaFasilitas, blok.namaBlok
+                                    FROM kamar
+                                    LEFT JOIN fasilitas ON kamar.idFasilitas = fasilitas.idFasilitas
+                                    LEFT JOIN blok ON kamar.idBlok = blok.idBlok
+                                ");
 
                                 if ($sql === false) {
-                                    echo "<tr><td colspan='7'>Error: " . $koneksi->error . "</td></tr>";
+                                    echo "<tr><td colspan='9'>Error: " . $koneksi->error . "</td></tr>";
                                 } else {
                                     while ($data = $sql->fetch_assoc()) {
                             ?>
@@ -42,8 +50,10 @@ function formatRupiah($angka) {
                                             <td><?php echo formatRupiah($data['harga']); ?></td>
                                             <td><?php echo $data['status']; ?></td>
                                             <td>
-                                                <img src="path/to/images/<?php echo $data['foto']; ?>" alt="Foto Kamar" width="100">
+                                                <img src="uploads/<?php echo $data['foto']; ?>" alt="Foto Kamar" width="100">
                                             </td>
+                                            <td><?php echo $data['namaFasilitas']; ?></td>
+                                            <td><?php echo $data['namaBlok']; ?></td>
                                             <td>
                                                 <a href="?page=kamar&aksi=ubah&idKamar=<?php echo $data['idKamar'];?>" class="btn btn-primary">Edit</a>
                                                 <a onclick="return confirm('Apakah Anda Yakin Akan Menghapus Data ini..?')" 
