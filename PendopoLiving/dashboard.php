@@ -1,20 +1,25 @@
 <?php
-// Initialize connection
-require 'koneksi.php';
-
-// Start session
 session_start();
+include 'koneksi.php';
 
-// Check for connection errors
-if ($koneksi->connect_error) {
-    die("Connection failed: " . $koneksi->connect_error);
+$namaAdmin = 'Pengguna'; // Default value jika session idAdmin tidak ditemukan
+
+if (isset($_SESSION['idAdmin'])) {
+    $idAdmin = $_SESSION['idAdmin'];
+
+    $query = "SELECT namaAdmin FROM admin WHERE idAdmin = ?";
+    $stmt = $koneksi->prepare($query);
+
+    if ($stmt) {
+        $stmt->bind_param("i", $idAdmin);
+        $stmt->execute();
+        $stmt->bind_result($namaAdmin);
+        $stmt->fetch();
+        $stmt->close();
+    }
 }
-
-// Uncomment these lines if session management is needed
-// if (!isset($_SESSION['admin']) && !isset($_SESSION['user'])) {
-//     header("Location: login.php"); // Redirect to login if not authenticated
-// }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -24,7 +29,6 @@ if ($koneksi->connect_error) {
     <title>Elisa Kost</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <!-- Custom CSS -->
     <style>
         .navbar-custom {
             background-color: #2E236C;
@@ -72,9 +76,9 @@ if ($koneksi->connect_error) {
                 <li class="nav-item">
                     <a class="nav-link" href="dashboard.php?page=pembayaran">Pembayaran</a>
                 </li>
-                <!-- Tampilkan Halo, [username] dan Logout -->
+                <!-- Tampilkan Halo, [namaAdmin] dan Logout -->
                 <li class="nav-item d-flex align-items-center">
-                    <span class="nav-link text-white">Halo, <?php echo isset($_SESSION['username']) ? $_SESSION['username'] : 'Pengguna'; ?></span>
+                    <span class="nav-link text-white">Halo, <?php echo htmlspecialchars($namaAdmin); ?></span>
                 </li>
                 <li class="nav-item">
                     <a class="btn btn-primary nav-link" href="login.php">Logout</a>

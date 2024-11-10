@@ -1,36 +1,43 @@
 <?php
 session_start();
-include 'koneksi.php'; // Sesuaikan dengan file koneksi Anda
+include 'koneksi.php';
 
-// Cek apakah form sudah disubmit
+$error = ""; // Inisialisasi variabel error
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user_type = $_POST['user_type'];
     $email = $_POST['email'];
     $password = $_POST['password'];
 
-    // Proses login untuk admin
+    // Login Admin
     if ($user_type === 'admin') {
-        $query = "SELECT * FROM admin WHERE Email = ? AND Password = ?"; 
+        $query = "SELECT * FROM admin WHERE Email = ? AND Password = ?";
         $stmt = $koneksi->prepare($query);
+
+        if (!$stmt) {
+            die("Error dalam menyiapkan query: " . $koneksi->error);
+        }
+
         $stmt->bind_param('ss', $email, $password);
         $stmt->execute();
         $result = $stmt->get_result();
 
         if ($result->num_rows === 1) {
-            $user = $result->fetch_assoc(); // Ambil data pengguna
+            $user = $result->fetch_assoc();
             $_SESSION['user_type'] = 'admin';
             $_SESSION['email'] = $email;
             $_SESSION['namaAdmin'] = $user['namaAdmin'];
+
             header("Location: dashboard.php");
             exit;
         } else {
-            $error = "Login Admin gagal!";
+            $error = "Login Admin gagal! Periksa email dan password.";
         }
     }
 
     // Proses login untuk penyewa
     elseif ($user_type === 'penyewa') {
-        $query = "SELECT * FROM penyewa WHERE email = ?"; 
+        $query = "SELECT * FROM penyewa WHERE email = ?";
         $stmt = $koneksi->prepare($query);
         $stmt->bind_param('s', $email);
         $stmt->execute();
@@ -61,14 +68,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Login</title>
     <link href="https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Custom styling for back button */
+        #backButton {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 10px 15px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 20px;
+            cursor: pointer;
+            display: none;
+        }
+        
+        #backButton:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
 
 <div id="roleWrapper">
-    <div id="roleContainer">
-        <h2 id="roleTitle">Lanjutkan Aktivitas sebagai</h2>
+    <!-- Tombol Kembali -->
+    <button id="backButton" onclick="goBackToRoleSelection()" 
+        style="position: absolute; top: 10px; left: 10px; padding: 10px 15px; border: none; 
+               background-color: #007bff; color: white; font-size: 14px; font-weight: bold; 
+               border-radius: 20px; cursor: pointer; <?php echo !empty($error) ? 'display: inline;' : 'display: none;'; ?>">
+    Kembali
+    </button>
 
-        <div id="roleButtons">
+
+    <div id="roleContainer">
+        <h2 id="roleTitle" style="<?php echo !empty($error) ? 'display: none;' : ''; ?>">Lanjutkan Aktivitas sebagai</h2>
+
+        <div id="roleButtons" <?php echo !empty($error) ? 'style="display: none;"' : ''; ?>>
             <div class="role-button-container">
                 <div class="role-content">
                     <img src="https://static-asset.papikost.com/images/general/pencari-kost.svg" alt="Pencari Kost" width="100">
@@ -92,13 +129,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 
-    <!-- Login Form, initially hidden -->
-    <form id="loginForm" method="post" action="" style="display: none;">
-        <input type="hidden" name="user_type" id="userType">
+    <!-- Login Form, will remain visible if error -->
+    <form id="loginForm" method="post" action="" style="<?php echo !empty($error) ? 'display: block;' : 'display: none;'; ?>">
+        <input type="hidden" name="user_type" id="userType" value="<?php echo isset($user_type) ? htmlspecialchars($user_type) : ''; ?>">
         
         <div class="input-container">
             <label>Email:</label>
-            <input type="text" name="email" required>
+            <input type="text" name="email" required value="<?php echo isset($email) ? htmlspecialchars($email) : ''; ?>">
         </div>
         
         <div class="input-container">
@@ -113,34 +150,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <button type="submit">Login</button>
 
         <div class="links">
-            <!-- Hanya tampilkan Daftar untuk penyewa -->
-            <a href="register.php" style="display: none;" id="daftarLink">Daftar</a>
+            <a href="register.php" style="<?php echo isset($user_type) && $user_type === 'penyewa' ? 'display: block;' : 'display: none;'; ?>" id="daftarLink">Daftar</a>
             <a href="lupa_password.php">Lupa Password?</a>
         </div>
     </form>
+    
+    <?php
+    if (!empty($error)) {
+        echo "<p id='errorMessage' style='color:red; text-align:center; margin-top:10px;'>$error</p>";
+    }
+    ?>
 </div>
-
-<?php
-if (isset($error)) {
-    echo "<p style='color:red;'>$error</p>";
-}
-?>
 
 <script>
 function selectUserType(type) {
-    // Set the user type value in the hidden input field
     document.getElementById('userType').value = type;
 
-    // Hide the role selection and display the login form
     document.getElementById('loginForm').style.display = 'block';
     document.getElementById('roleButtons').style.display = 'none';
     document.getElementById('roleTitle').style.display = 'none';
+    document.getElementById('backButton').style.display = 'inline';
 
-    // Tampilkan link Daftar hanya untuk penyewa
     if (type === 'penyewa') {
-        document.getElementById('daftarLink').style.display = 'block'; // Tampilkan tombol Daftar
+        document.getElementById('daftarLink').style.display = 'block'; 
     } else {
-        document.getElementById('daftarLink').style.display = 'none'; // Sembunyikan tombol Daftar untuk admin
+        document.getElementById('daftarLink').style.display = 'none'; 
     }
 }
 
@@ -149,6 +183,19 @@ function togglePasswordVisibility() {
     var showPasswordCheckbox = document.getElementById('showPassword');
     passwordField.type = showPasswordCheckbox.checked ? 'text' : 'password';
 }
+
+function goBackToRoleSelection() {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('roleButtons').style.display = 'flex';
+    document.getElementById('roleTitle').style.display = 'block';
+    document.getElementById('backButton').style.display = 'none';
+
+    var errorMessage = document.getElementById('errorMessage');
+    if (errorMessage) {
+        errorMessage.style.display = 'none';
+    }
+}
+
 </script>
 
 </body>
