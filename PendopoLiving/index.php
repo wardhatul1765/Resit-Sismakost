@@ -357,13 +357,12 @@ session_start();
       <div class="row gy-4">
         <div class="col-lg-4 col-md-6 footer-about">
           <a href="index.html" class="d-flex align-items-center">
-            <span class="sitename">Elisa</span>
+            <span class="sitename">Elisa Kost</span>
           </a>
           <div class="footer-contact pt-3">
-            <p>Elisa Oktaviana</p>
-            <p>Bondowoso, Jawa Timur</p>
-            <p class="mt-3"><strong>Phone:</strong> <span>083134628726</span></p>
-            <p><strong>Email:</strong> <span>elisaoktaviana985@gmail.com</span></p>
+            <p>Jember, Jawa Timur</p>
+            <p class="mt-3"><strong>No Telp:</strong> <span>083134628726</span></p>
+            <p><strong>Email:</strong> <span>ElisaKost@gmail.com</span></p>
           </div>
         </div>
 
