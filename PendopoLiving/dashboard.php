@@ -2,13 +2,15 @@
 // Initialize connection
 require 'koneksi.php';
 
+// Start session
+session_start();
+
 // Check for connection errors
 if ($koneksi->connect_error) {
     die("Connection failed: " . $koneksi->connect_error);
 }
 
 // Uncomment these lines if session management is needed
-// session_start();
 // if (!isset($_SESSION['admin']) && !isset($_SESSION['user'])) {
 //     header("Location: login.php"); // Redirect to login if not authenticated
 // }
@@ -41,9 +43,6 @@ if ($koneksi->connect_error) {
             margin-right: 30px;
         }
     </style>
-
-
-
 </head>
 <body>
 
@@ -72,6 +71,10 @@ if ($koneksi->connect_error) {
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="dashboard.php?page=pembayaran">Pembayaran</a>
+                </li>
+                <!-- Tampilkan Halo, [username] dan Logout -->
+                <li class="nav-item d-flex align-items-center">
+                    <span class="nav-link text-white">Halo, <?php echo isset($_SESSION['username']) ? $_SESSION['username'] : 'Pengguna'; ?></span>
                 </li>
                 <li class="nav-item">
                     <a class="btn btn-primary nav-link" href="login.php">Logout</a>
