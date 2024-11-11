@@ -1,3 +1,6 @@
+<?php
+session_start();
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -42,21 +45,30 @@
       </a>
 
       <nav id="navmenu" class="navmenu">
-        <ul>
-        <li><a href="#hero" class="active">Home</a></li>
-          <li><a href="#about">About</a></li>
-          <li><a href="#team">Data Kamar</a></li> 
-          <li><a href="#testimonials">Fasilitas Kamar</a></li>
-          <!-- <li><a href="daftar.php">Register</a></li> -->
-          <li><a href="#pemesanan">Pemesanan</a></li>
-          <!-- <li><a href="#laporan">Laporan</a></li> -->
-          <li><a href="#contact">Contact</a></li>
-          <li><a href="login.php">Login</a></li>
-        </ul>
-        <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
-      </nav>
+  <ul>
+    <li><a href="#hero" class="active">Home</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#team">Data Kamar</a></li> 
+    <li><a href="#testimonials">Fasilitas Kamar</a></li>
+    <li><a href="#pemesanan">Pemesanan</a></li>
+    <li><a href="#contact">Contact</a></li>
 
-      <!-- <a class="btn-getstarted" href="#about"></a> -->
+    <?php if (isset($_SESSION['namaPenyewa'])): ?>
+      <!-- Jika pengguna sudah login, tampilkan dropdown -->
+      <li class="dropdown">
+        <a href="#" class="dropdown-toggle">Welcome, <?php echo $_SESSION['namaPenyewa']; ?>!</a>
+        <ul class="dropdown-menu">
+          <li><a href="#">Pesananku</a></li>  
+          <li><a href="logout.php">Logout</a></li>
+        </ul>
+      </li>
+    <?php else: ?>
+      <!-- Jika pengguna belum login, tampilkan opsi Login -->
+      <li><a href="login.php">Login</a></li>
+    <?php endif; ?>
+  </ul>
+  <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+</nav>
 
     </div>
   </header>
@@ -184,12 +196,12 @@
     <section id="testimonials" class="testimonials section">
 
       <!-- Section Title -->
-      <div class="container section-title" data-aos="fade-up">
+      <!-- <div class="container section-title" data-aos="fade-up">
         <h2>fasilitas kamar</h2>
         <p>Halo</p>
-      </div><!-- End Section Title -->
+      </div>End Section Title -->
 
-      <div class="container" data-aos="fade-up" data-aos-delay="100">
+      <!-- <div class="container" data-aos="fade-up" data-aos-delay="100">
 
         <div class="swiper init-swiper">
           <script type="application/json" class="swiper-config">
@@ -206,7 +218,7 @@
                 "clickable": true
               }
             }
-          </script>
+          </script> -->
           <div class="swiper-wrapper">
 
             <div class="swiper-slide">
@@ -345,13 +357,12 @@
       <div class="row gy-4">
         <div class="col-lg-4 col-md-6 footer-about">
           <a href="index.html" class="d-flex align-items-center">
-            <span class="sitename">Elisa</span>
+            <span class="sitename">Elisa Kost</span>
           </a>
           <div class="footer-contact pt-3">
-            <p>Elisa Oktaviana</p>
-            <p>Bondowoso, Jawa Timur</p>
-            <p class="mt-3"><strong>Phone:</strong> <span>083134628726</span></p>
-            <p><strong>Email:</strong> <span>elisaoktaviana985@gmail.com</span></p>
+            <p>Jember, Jawa Timur</p>
+            <p class="mt-3"><strong>No Telp:</strong> <span>083134628726</span></p>
+            <p><strong>Email:</strong> <span>ElisaKost@gmail.com</span></p>
           </div>
         </div>
 
