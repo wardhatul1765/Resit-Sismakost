@@ -11,27 +11,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Login Admin
     if ($user_type === 'admin') {
-        $query = "SELECT * FROM admin WHERE Email = ? AND Password = ?";
+        $query = "SELECT * FROM admin WHERE Email = ?";
         $stmt = $koneksi->prepare($query);
-
+    
         if (!$stmt) {
             die("Error dalam menyiapkan query: " . $koneksi->error);
         }
-
-        $stmt->bind_param('ss', $email, $password);
+    
+        $stmt->bind_param('s', $email);
         $stmt->execute();
         $result = $stmt->get_result();
-
+    
         if ($result->num_rows === 1) {
             $user = $result->fetch_assoc();
-            $_SESSION['user_type'] = 'admin';
-            $_SESSION['email'] = $email;
-            $_SESSION['namaAdmin'] = $user['namaAdmin'];
-
-            header("Location: dashboard.php");
-            exit;
+            
+            // Verifikasi password menggunakan password_verify
+            if (password_verify($password, $user['Password'])) {
+                $_SESSION['user_type'] = 'admin';
+                $_SESSION['email'] = $email;
+                $_SESSION['idAdmin'] = $user['idAdmin'];
+                $_SESSION['namaAdmin'] = $user['namaAdmin'];
+                header("Location: dashboard.php");
+                exit;
+            } else {
+                $error = "Login Admin gagal! Periksa email dan password.";
+            }
         } else {
-            $error = "Login Admin gagal! Periksa email dan password.";
+            $error = "Login Admin gagal! Email atau password salah.";
         }
     }
 
@@ -48,6 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (password_verify($password, $user['password'])) {
                 $_SESSION['user_type'] = 'penyewa';
                 $_SESSION['email'] = $email;
+                $_SESSION['idPenyewa'] = $user['idPenyewa']; // Asumsikan $data adalah array hasil login
                 $_SESSION['namaPenyewa'] = $user['namaPenyewa'];
                 header("Location: index.php");
                 exit;

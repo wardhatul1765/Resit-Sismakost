@@ -30,12 +30,16 @@ function formatRupiah($angka) {
                         <tbody>
                             <?php
                                 $no = 1;
-                                // Query untuk mengambil data kamar beserta fasilitas dan blok
+                                // Query untuk mengambil data kamar beserta fasilitas (menggunakan GROUP_CONCAT untuk menggabungkan nama fasilitas)
                                 $sql = $koneksi->query("
-                                    SELECT kamar.*, fasilitas.namaFasilitas, blok.namaBlok
+                                    SELECT kamar.*, 
+                                           GROUP_CONCAT(fasilitas.namaFasilitas ORDER BY fasilitas.namaFasilitas ASC) AS fasilitasList,
+                                           blok.namaBlok
                                     FROM kamar
-                                    LEFT JOIN fasilitas ON kamar.idFasilitas = fasilitas.idFasilitas
+                                    LEFT JOIN kamar_fasilitas ON kamar.idKamar = kamar_fasilitas.idKamar
+                                    LEFT JOIN fasilitas ON kamar_fasilitas.idFasilitas = fasilitas.idFasilitas
                                     LEFT JOIN blok ON kamar.idBlok = blok.idBlok
+                                    GROUP BY kamar.idKamar
                                 ");
 
                                 if ($sql === false) {
@@ -50,16 +54,35 @@ function formatRupiah($angka) {
                                             <td><?php echo formatRupiah($data['harga']); ?></td>
                                             <td><?php echo $data['status']; ?></td>
                                             <td>
-                                                <img src="uploads/<?php echo $data['foto']; ?>" alt="Foto Kamar" width="100">
+                                                <!-- Gambar kecil yang dapat diklik -->
+                                                <img src="uploads/<?php echo $data['foto']; ?>" alt="Foto Kamar" width="100" data-toggle="modal" data-target="#fotoModal<?php echo $data['idKamar']; ?>">
                                             </td>
-                                            <td><?php echo $data['namaFasilitas']; ?></td>
+                                            <td><?php echo $data['fasilitasList']; ?></td> <!-- Menampilkan daftar fasilitas -->
                                             <td><?php echo $data['namaBlok']; ?></td>
                                             <td>
-                                                <a href="?page=kamar&aksi=ubah&idKamar=<?php echo $data['idKamar'];?>" class="btn btn-primary">Edit</a>
+                                                <a href="?page=kamar&aksi=edit&idKamar=<?php echo $data['idKamar'];?>" class="btn btn-primary">Edit</a>
                                                 <a onclick="return confirm('Apakah Anda Yakin Akan Menghapus Data ini..?')" 
                                                 href="?page=kamar&aksi=hapus&idKamar=<?php echo $data['idKamar'];?>" class="btn btn-danger">Hapus</a>
                                             </td>
                                         </tr>
+
+                                        <!-- Modal untuk menampilkan gambar besar -->
+                                        <div class="modal fade" id="fotoModal<?php echo $data['idKamar']; ?>" tabindex="-1" role="dialog" aria-labelledby="fotoModalLabel<?php echo $data['idKamar']; ?>" aria-hidden="true">
+                                            <div class="modal-dialog" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                        <h5 class="modal-title" id="fotoModalLabel<?php echo $data['idKamar']; ?>">Foto Kamar</h5>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <!-- Gambar besar dalam modal -->
+                                                        <img src="uploads/<?php echo $data['foto']; ?>" alt="Foto Kamar" class="img-fluid">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                             <?php 
                                     }
                                 } 
