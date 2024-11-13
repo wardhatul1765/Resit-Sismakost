@@ -30,7 +30,7 @@ if (isset($_POST['submit_email'])) {
 
     if ($data) {
         $token = rand(100000, 999999);
-        $expiry = date("Y-m-d H:i:s", strtotime('+1 hour'));
+        $expiry = date("Y-m-d H:i:s", strtotime('+15 minutes'));
 
         // Update token pada tabel yang sesuai
         if ($isAdmin) {
@@ -55,7 +55,7 @@ if (isset($_POST['submit_email'])) {
             $mail->isHTML(true);
             $mail->Subject = 'Kode Reset Password Anda';
 
-            $mail->Body = "Berikut adalah kode untuk mereset password Anda: <strong>$token</strong>. Kode ini berlaku selama 1 jam.";
+            $mail->Body = "Berikut adalah kode untuk mereset password Anda: <strong>$token</strong>. Kode ini berlaku selama 15 menit.";
 
             $mail->send();
             $message = "Email berisi kode reset password telah dikirim. Silakan cek email Anda.";
