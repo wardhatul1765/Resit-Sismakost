@@ -15,22 +15,38 @@ $message = ''; // Variabel untuk menyimpan pesan
 // Step 1: Kirim Token Reset Password
 if (isset($_POST['submit_email'])) {
     $email = mysqli_real_escape_string($koneksi, $_POST['email']);
-    $sql = $koneksi->query("SELECT * FROM penyewa WHERE email='$email'");
+    
+    // Mengecek apakah email milik admin atau penyewa
+    $isAdmin = false;
+    $sql = $koneksi->query("SELECT * FROM admin WHERE Email='$email'");
     $data = $sql->fetch_assoc();
+
+    if (!$data) {
+        $sql = $koneksi->query("SELECT * FROM penyewa WHERE email='$email'");
+        $data = $sql->fetch_assoc();
+    } else {
+        $isAdmin = true;
+    }
 
     if ($data) {
         $token = rand(100000, 999999);
         $expiry = date("Y-m-d H:i:s", strtotime('+1 hour'));
 
-        $koneksi->query("UPDATE penyewa SET reset_token='$token', token_expiry='$expiry' WHERE email='$email'");
+        // Update token pada tabel yang sesuai
+        if ($isAdmin) {
+            $koneksi->query("UPDATE admin SET reset_token='$token', token_expiry='$expiry' WHERE Email='$email'");
+        } else {
+            $koneksi->query("UPDATE penyewa SET reset_token='$token', token_expiry='$expiry' WHERE email='$email'");
+        }
 
+        // Mengirim email
         $mail = new PHPMailer(true);
         try {
             $mail->isSMTP();
             $mail->Host = 'smtp.gmail.com';
             $mail->SMTPAuth = true;
             $mail->Username = 'kakapatria22@gmail.com';
-            $mail->Password = 'ofse zhdu vtle dapq';  // Ganti dengan password aplikasi yang benar
+            $mail->Password = 'ofse zhdu vtle dapq'; // Ganti dengan password aplikasi yang benar
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port = 587;
 
@@ -45,6 +61,7 @@ if (isset($_POST['submit_email'])) {
             $message = "Email berisi kode reset password telah dikirim. Silakan cek email Anda.";
             $_SESSION['isTokenSent'] = true;
             $_SESSION['email'] = $email;
+            $_SESSION['isAdmin'] = $isAdmin;
         } catch (Exception $e) {
             $message = "Gagal mengirim email. Error: " . $mail->ErrorInfo;
         }
@@ -52,11 +69,19 @@ if (isset($_POST['submit_email'])) {
         $message = "Email tidak ditemukan.";
     }
 }
+
 // Step 2: Verifikasi Token
 elseif (isset($_POST['verify_token'])) {
     $token = mysqli_real_escape_string($koneksi, $_POST['token']);
+    $isAdmin = $_SESSION['isAdmin'] ?? false;
     
-    $sql = $koneksi->query("SELECT * FROM penyewa WHERE reset_token='$token' AND token_expiry > NOW()");
+    // Cek token di tabel yang sesuai
+    if ($isAdmin) {
+        $sql = $koneksi->query("SELECT * FROM admin WHERE reset_token='$token' AND token_expiry > NOW()");
+    } else {
+        $sql = $koneksi->query("SELECT * FROM penyewa WHERE reset_token='$token' AND token_expiry > NOW()");
+    }
+
     $data = $sql->fetch_assoc();
 
     if ($data) {
@@ -67,12 +92,19 @@ elseif (isset($_POST['verify_token'])) {
         $message = "Token tidak valid atau telah kedaluwarsa.";
     }
 }
+
 // Step 3: Reset Password Baru
 elseif (isset($_POST['reset_password']) && isset($_SESSION['isTokenVerified']) && $_SESSION['isTokenVerified']) {
     $password = mysqli_real_escape_string($koneksi, $_POST['new_password']);
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+    $isAdmin = $_SESSION['isAdmin'] ?? false;
 
-    $koneksi->query("UPDATE penyewa SET password='$hashed_password', reset_token=NULL, token_expiry=NULL WHERE reset_token='{$_SESSION['reset_token']}'");
+    // Update password pada tabel yang sesuai
+    if ($isAdmin) {
+        $koneksi->query("UPDATE admin SET Password='$hashed_password', reset_token=NULL, token_expiry=NULL WHERE reset_token='{$_SESSION['reset_token']}'");
+    } else {
+        $koneksi->query("UPDATE penyewa SET password='$hashed_password', reset_token=NULL, token_expiry=NULL WHERE reset_token='{$_SESSION['reset_token']}'");
+    }
     
     $_SESSION['message'] = "Kata sandi berhasil direset. Silakan login dengan password baru Anda.";
     session_destroy();

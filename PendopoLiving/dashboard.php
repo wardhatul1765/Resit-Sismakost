@@ -9,14 +9,21 @@ if (isset($_SESSION['idAdmin'])) {
 
     $query = "SELECT namaAdmin FROM admin WHERE idAdmin = ?";
     $stmt = $koneksi->prepare($query);
-
+    
     if ($stmt) {
         $stmt->bind_param("i", $idAdmin);
-        $stmt->execute();
-        $stmt->bind_result($namaAdmin);
-        $stmt->fetch();
-        $stmt->close();
+        if ($stmt->execute()) {
+            $stmt->bind_result($namaAdmin);
+            $stmt->fetch();
+            $stmt->close();
+            // echo "Nama Admin: " . $namaAdmin; // Debugging
+        } else {
+            echo "Error: Gagal eksekusi query.";
+        }
+    } else {
+        echo "Error: Tidak dapat menyiapkan query.";
     }
+    
 }
 ?>
 
