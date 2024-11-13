@@ -1,3 +1,28 @@
+<?php
+session_start();
+
+include 'koneksi.php';
+
+// Query untuk mendapatkan total kamar mandi dalam
+$query_mandi_dalam = "SELECT COUNT(k.idKamar) AS total_kamar
+                      FROM kamar k
+                      JOIN kamar_fasilitas kf ON k.idKamar = kf.idKamar
+                      JOIN fasilitas f ON kf.idFasilitas = f.idFasilitas
+                      WHERE f.namaFasilitas = 'kamar mandi dalam'";
+$result_mandi_dalam = mysqli_query($koneksi, $query_mandi_dalam);
+$data_mandi_dalam = mysqli_fetch_assoc($result_mandi_dalam);
+$total_mandi_dalam = $data_mandi_dalam['total_kamar'];
+
+// Query untuk mendapatkan total kamar mandi luar
+$query_mandi_luar = "SELECT COUNT(k.idKamar) AS total_kamar
+                     FROM kamar k
+                     JOIN kamar_fasilitas kf ON k.idKamar = kf.idKamar
+                     JOIN fasilitas f ON kf.idFasilitas = f.idFasilitas
+                     WHERE f.namaFasilitas = 'kamar mandi luar'";
+$result_mandi_luar = mysqli_query($koneksi, $query_mandi_luar);
+$data_mandi_luar = mysqli_fetch_assoc($result_mandi_luar);
+$total_mandi_luar = $data_mandi_luar['total_kamar'];
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -5,7 +30,7 @@
 <head>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
-  <title>Web Loker - By Elisa</title>
+  <title>Elisa Kost</title>
   <meta content="" name="description">
   <meta content="" name="keywords">
 
@@ -42,21 +67,31 @@
       </a>
 
       <nav id="navmenu" class="navmenu">
-        <ul>
-        <li><a href="#hero" class="active">Home</a></li>
-          <li><a href="#about">About</a></li>
-          <li><a href="#team">Data Kamar</a></li> 
-          <li><a href="#testimonials">Fasilitas Kamar</a></li>
-          <!-- <li><a href="daftar.php">Register</a></li> -->
-          <li><a href="#pemesanan">Pemesanan</a></li>
-          <!-- <li><a href="#laporan">Laporan</a></li> -->
-          <li><a href="#contact">Contact</a></li>
-          <li><a href="login.php">Login</a></li>
-        </ul>
-        <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
-      </nav>
+  <ul>
+    <li><a href="#hero" class="active">Home</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#team">Data Kamar</a></li> 
+    <!-- <li><a href="#testimonials">Fasilitas Kamar</a></li> -->
+    <li><a href="#pemesanan">Pemesanan</a></li>
+    <li><a href="#contact">Contact</a></li>
 
-      <!-- <a class="btn-getstarted" href="#about"></a> -->
+    <?php if (isset($_SESSION['namaPenyewa'])): ?>
+      <!-- Jika pengguna sudah login, tampilkan dropdown -->
+      <li class="dropdown">
+        <a href="#" class="dropdown-toggle">Welcome, <?php echo $_SESSION['namaPenyewa']; ?>!</a>
+        <ul class="dropdown-menu">
+          <li><a href="Profil.php">Profil</a></li> 
+          <li><a href="#">Pesananku</a></li>  
+          <li><a href="logout.php">Logout</a></li>
+        </ul>
+      </li>
+    <?php else: ?>
+      <!-- Jika pengguna belum login, tampilkan opsi Login -->
+      <li><a href="login.php">Login</a></li>
+    <?php endif; ?>
+  </ul>
+  <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+</nav>
 
     </div>
   </header>
@@ -122,61 +157,45 @@
    
     <!-- Team Section -->
     <section id="team" class="team section">
+  <!-- Section Title -->
+  <div class="container section-title" data-aos="fade-up">
+    <h2>Pencarian Kost Ternyaman</h2>
+    <p>Kamar Kost Ternyaman dan Termurah Kami Sediakan Di Bawah ini</p>
+  </div><!-- End Section Title -->
 
-      <!-- Section Title -->
-      <div class="container section-title" data-aos="fade-up">
-        <h2>Pencarian Kost Ternyaman</h2>
-        <p>Kamar Kost Ternyaman dan Termurah Kami Sediakan Di Bawah ini</p>
-      </div><!-- End Section Title -->
+  <div class="container">
+    <div class="row gy-4">
+      <div class="row">
+        <!-- Kamar Mandi Dalam -->
+        <div class="col-lg-6" data-aos="fade-up" data-aos-delay="100">
+          <div class="team-member d-flex align-items-start">
+            <a href="daftar_kamar.php?fasilitas=kamar mandi dalam">
+              <div class="pic"><img src="assetss/img/kos.jpeg" class="img-fluid" alt=""></div>
+            </a>
+            <div class="member-info">
+              <h4><a href="daftar_kamar.php?fasilitas=kamar mandi dalam">Kamar Mandi Dalam</a></h4>
+              <span>Stok: <?php echo $total_mandi_dalam; ?></span>
+            </div>
+          </div>
+        </div><!-- End Team Member -->
 
-      <div class="container">
-
-        <div class="row gy-4">
-       
-       
-
-        <div class="row">
-  <!-- Kamar Mandi Dalam -->
-  <div class="col-lg-6" data-aos="fade-up" data-aos-delay="100">
-    <div class="team-member d-flex align-items-start">
-      <div class="pic"><img src="assetss/img/kos.jpeg" class="img-fluid" alt=""></div>
-      <div class="member-info">
-        <h4>Kamar Mandi Dalam</h4>
-        <span>Stok</span>
-        <!-- <p>Explicabo voluptatem mollitia et repellat qui dolorum quasi</p>
-        <div class="social">
-          <a href=""><i class="bi bi-twitter-x"></i></a>
-          <a href=""><i class="bi bi-facebook"></i></a>
-          <a href=""><i class="bi bi-instagram"></i></a>
-          <a href=""> <i class="bi bi-linkedin"></i> </a>
-        </div> -->
-      </div>
+        <!-- Kamar Mandi Luar -->
+        <div class="col-lg-6" data-aos="fade-up" data-aos-delay="200">
+          <div class="team-member d-flex align-items-start">
+            <a href="daftar_kamar.php?fasilitas=kamar mandi luar">
+              <div class="pic"><img src="assetss/img/kos.jpeg" class="img-fluid" alt=""></div>
+            </a>
+            <div class="member-info">
+              <h4><a href="daftar_kamar.php?fasilitas=kamar mandi luar">Kamar Mandi Luar</a></h4>
+              <span>Stok: <?php echo $total_mandi_luar; ?></span>
+            </div>
+          </div>
+        </div><!-- End Team Member -->
+      </div>      
     </div>
-  </div><!-- End Team Member -->
+  </div>
+</section><!-- /Team Section -->
 
-  <!-- Kamar Mandi Luar -->
-  <div class="col-lg-6" data-aos="fade-up" data-aos-delay="200">
-    <div class="team-member d-flex align-items-start">
-      <div class="pic"><img src="assetss/img/kos.jpeg" class="img-fluid" alt=""></div>
-      <div class="member-info">
-        <h4>Kamar Mandi Luar</h4>
-        <span>Stok</span>
-        <!-- <p>Explicabo voluptatem mollitia et repellat qui dolorum quasi</p>
-        <div class="social">
-          <a href=""><i class="bi bi-twitter-x"></i></a>
-          <a href=""><i class="bi bi-facebook"></i></a>
-          <a href=""><i class="bi bi-instagram"></i></a>
-          <a href=""> <i class="bi bi-linkedin"></i> </a>
-        </div> -->
-      </div>
-    </div>
-  </div><!-- End Team Member -->
-</div>      
-         
-
-      </div>
-
-    </section><!-- /Team Section -->
 
  
 
@@ -184,12 +203,12 @@
     <section id="testimonials" class="testimonials section">
 
       <!-- Section Title -->
-      <div class="container section-title" data-aos="fade-up">
+      <!-- <div class="container section-title" data-aos="fade-up">
         <h2>fasilitas kamar</h2>
         <p>Halo</p>
-      </div><!-- End Section Title -->
+      </div>End Section Title -->
 
-      <div class="container" data-aos="fade-up" data-aos-delay="100">
+      <!-- <div class="container" data-aos="fade-up" data-aos-delay="100">
 
         <div class="swiper init-swiper">
           <script type="application/json" class="swiper-config">
@@ -206,7 +225,7 @@
                 "clickable": true
               }
             }
-          </script>
+          </script> -->
           <div class="swiper-wrapper">
 
             <div class="swiper-slide">
@@ -345,13 +364,12 @@
       <div class="row gy-4">
         <div class="col-lg-4 col-md-6 footer-about">
           <a href="index.html" class="d-flex align-items-center">
-            <span class="sitename">Elisa</span>
+            <span class="sitename">Elisa Kost</span>
           </a>
           <div class="footer-contact pt-3">
-            <p>Elisa Oktaviana</p>
-            <p>Bondowoso, Jawa Timur</p>
-            <p class="mt-3"><strong>Phone:</strong> <span>083134628726</span></p>
-            <p><strong>Email:</strong> <span>elisaoktaviana985@gmail.com</span></p>
+            <p>Jember, Jawa Timur</p>
+            <p class="mt-3"><strong>No Telp:</strong> <span>083134628726</span></p>
+            <p><strong>Email:</strong> <span>ElisaKost@gmail.com</span></p>
           </div>
         </div>
 
