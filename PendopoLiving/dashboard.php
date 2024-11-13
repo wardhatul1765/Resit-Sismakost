@@ -2,7 +2,7 @@
 session_start();
 include 'koneksi.php';
 
-$namaAdmin = 'Pengguna'; // Default value jika session idAdmin tidak ditemukan
+$namaAdmin = 'Pengguna'; // Default value if session idAdmin is not found
 
 if (isset($_SESSION['idAdmin'])) {
     $idAdmin = $_SESSION['idAdmin'];
@@ -16,17 +16,14 @@ if (isset($_SESSION['idAdmin'])) {
             $stmt->bind_result($namaAdmin);
             $stmt->fetch();
             $stmt->close();
-            // echo "Nama Admin: " . $namaAdmin; // Debugging
         } else {
-            echo "Error: Gagal eksekusi query.";
+            echo "Error: Failed to execute query.";
         }
     } else {
-        echo "Error: Tidak dapat menyiapkan query.";
+        echo "Error: Unable to prepare query.";
     }
-    
 }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -34,65 +31,50 @@ if (isset($_SESSION['idAdmin'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Elisa Kost</title>
-    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="style2.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <style>
-        .navbar-custom {
-            background-color: #2E236C;
-        }
-        .navbar-custom .navbar-brand,
-        .navbar-custom .nav-link {
-            color: white;
-            transition: transform 0.3s ease, font-style 0.3s ease;
-        }
-        .navbar-custom .nav-link:hover {
-            color: #ffccff;
-            font-style: italic;
-            transform: scale(1.1);
-        }
-        .navbar-nav .nav-item {
-            margin-right: 30px;
-        }
-    </style>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 </head>
 <body>
 
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-custom">
-        <a class="navbar-brand" href="index.php?page=dashboard">Elisa Kost</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ml-auto">
-                <li class="nav-item">
-                    <a class="nav-link<?php echo (isset($_GET['page']) && $_GET['page'] === 'dashboard') ? ' active' : ''; ?>" href="dashboard.php?page=dashboard">Dashboard</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="dashboard.php?page=fasilitas">Fasilitas</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="dashboard.php?page=kamar">Kamar</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="dashboard.php?page=penyewa">Penyewa</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="dashboard.php?page=pemesanan">Pemesanan</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="dashboard.php?page=pembayaran">Pembayaran</a>
-                </li>
-                <!-- Tampilkan Halo, [namaAdmin] dan Logout -->
-                <li class="nav-item d-flex align-items-center">
-                    <span class="nav-link text-white">Halo, <?php echo htmlspecialchars($namaAdmin); ?></span>
-                </li>
-                <li class="nav-item">
-                    <a class="btn btn-primary nav-link" href="login.php">Logout</a>
-                </li>
-            </ul>
+    <div class="top-container">
+        <div class="nav">
+            <!-- Logo -->
+            <div class="logo">
+                <i class='bx bxl-codepen'></i>
+                <a href="index.php?page=dashboard">Kost Elisa</a>
+            </div>
+
+            <!-- Links / Navigation -->
+            <div class="nav-links">
+                <a href="dashboard.php?page=dashboard">Dashboard</a>
+                <a href="dashboard.php?page=fasilitas">Fasilitas</a>
+                <a href="dashboard.php?page=kamar">Kamar</a>
+                <a href="dashboard.php?page=penyewa">Penyewa</a>
+                <a href="dashboard.php?page=pemesanan">Pemesanan</a>
+                <a href="dashboard.php?page=pembayaran">Pembayaran</a>
+            </div>
+
+            <!-- Right Section (Notification, Search, Profile) -->
+            <div class="right-section">
+                <i class='bx bx-bell'></i>
+                <i class='bx bx-search'></i>
+
+                <!-- Profile Section -->
+                <div class="profile">
+                    <div class="info">
+                        <img src="assets/profile.png" alt="Profile">
+                        <div>
+                            <a href="#"><?php echo htmlspecialchars($namaAdmin); ?></a>
+                            <p>Admin</p>
+                        </div>
+                    </div>
+                    <i class='bx bx-chevron-down'></i>
+                </div>
+            </div>
         </div>
-    </nav>
+    </div>
 
     <!-- Content -->
     <div class="container mt-5">
@@ -101,11 +83,12 @@ if (isset($_SESSION['idAdmin'])) {
         $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
         $aksi = isset($_GET['aksi']) ? $_GET['aksi'] : '';
 
-        // Load the appropriate content based on the page parameter and aksi
+        // Switch content based on 'page' and 'aksi' parameters
         switch ($page) {
             case "dashboard":
                 include "page/dashboard/adminhome.php";
                 break;
+
             case "fasilitas":
                 if ($aksi == "") {
                     include "page/fasilitas/fasilitas.php";
@@ -117,6 +100,7 @@ if (isset($_SESSION['idAdmin'])) {
                     include "page/fasilitas/hapus.php";
                 }
                 break;
+
             case "kamar":
                 if ($aksi == "") {
                     include "page/kamar/kamar.php";
@@ -128,6 +112,7 @@ if (isset($_SESSION['idAdmin'])) {
                     include "page/kamar/hapus.php";
                 }
                 break;
+
             case "penyewa":
                 if ($aksi == "") {
                     include "page/penyewa/datapenyewa.php";
@@ -139,6 +124,7 @@ if (isset($_SESSION['idAdmin'])) {
                     include "page/penyewa/hapus.php";
                 }
                 break;
+
             case "pemesanan":
                 if ($aksi == "") {
                     include "page/pemesanan/pemesanan.php";
@@ -150,6 +136,7 @@ if (isset($_SESSION['idAdmin'])) {
                     include "page/pemesanan/hapus.php";
                 }
                 break;
+
             case "pembayaran":
                 if ($aksi == "") {
                     include "page/pembayaran/pembayaran.php";
@@ -161,8 +148,9 @@ if (isset($_SESSION['idAdmin'])) {
                     include "page/pembayaran/hapus.php";
                 }
                 break;
+
             default:
-                echo "<h1>404 - Page Not Found</h1><p>Halaman yang Anda cari tidak ditemukan.</p>";
+                echo "<h1>404 - Page Not Found</h1>";
                 break;
         }
         ?>

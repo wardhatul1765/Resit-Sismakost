@@ -137,9 +137,6 @@ $total_mandi_luar = $data_mandi_luar['total_kamar'];
             Website aplikasi kost adalah platform online yang memudahkan Anda menemukan tempat tinggal yang nyaman dan sesuai dengan kebutuhan. Temukan berbagai pilihan kost dengan mudah dan cepat melalui fitur-fitur menarik yang kami sediakan.
             </p>
             <ul>
-              <li><i class="bi bi-check2-circle"></i> <span>Pencarian Kost Ternyaman</span></li>
-              <li><i class="bi bi-check2-circle"></i> <span>Profil Perusahaan</span></li>
-             
             </ul>
           </div>
 
@@ -226,10 +223,14 @@ $total_mandi_luar = $data_mandi_luar['total_kamar'];
               }
             }
           </script> -->
+
+          
           <div class="swiper-wrapper">
 
             <div class="swiper-slide">
+            <div class="container section-title" data-aos="fade-up">
               <div class="testimonial-item">
+                <h2>Profil Perusahaan</h2>
                 <img src="assetss/img/kos.jpeg" class="testimonial-img" alt="">
                 <h3>By Tim Resit</h3>
                 <h4>Website Elisa Kos</h4>
@@ -301,15 +302,19 @@ $total_mandi_luar = $data_mandi_luar['total_kamar'];
             <form action="forms/contact.php" method="post" class="php-email-form" data-aos="fade-up" data-aos-delay="200">
               <div class="row gy-4">
 
-                <div class="col-md-6">
-                  <label for="name-field" class="pb-2">Your Name</label>
-                  <input type="text" name="name" id="name-field" class="form-control" required="">
-                </div>
+              <div class="col-md-6">
+                <label for="name-field" class="pb-2">Your Name</label>
+                <input type="text" name="name" id="name-field" class="form-control" 
+                       value="<?php echo htmlspecialchars($_SESSION['namaPenyewa'] ?? ''); ?>" 
+                       required readonly>
+              </div>
 
-                <div class="col-md-6">
-                  <label for="email-field" class="pb-2">Your Email</label>
-                  <input type="email" class="form-control" name="email" id="email-field" required="">
-                </div>
+              <div class="col-md-6">
+                <label for="email-field" class="pb-2">Your Email</label>
+                <input type="email" name="email" id="email-field" class="form-control" 
+                       value="<?php echo htmlspecialchars($_SESSION['email'] ?? ''); ?>" 
+                       required readonly>
+              </div>
 
                 <div class="col-md-12">
                   <label for="subject-field" class="pb-2">Subject</label>
