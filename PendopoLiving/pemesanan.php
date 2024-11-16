@@ -4,8 +4,13 @@ include('koneksi.php');
 
 // Ambil parameter dari URL
 $idKamar = isset($_GET['idKamar']) ? $_GET['idKamar'] : '';
+$fasilitas = isset($_GET['fasilitas']) ? $_GET['fasilitas'] : '';
+$blok = isset($_GET['blok']) ? $_GET['blok'] : '';
 $bringElectronics = isset($_POST['bringElectronics']) ? $_POST['bringElectronics'] : 0;
 $paymentOption = isset($_POST['paymentOption']) ? $_POST['paymentOption'] : 'dp'; // default ke 'dp'
+
+$returnUrl = isset($_GET['returnUrl']) ? $_GET['returnUrl'] : 'daftar_kamar.php';
+echo "<a href='" . $returnUrl . "' id='backButton'>Kembali</a>";
 
 // Query untuk mendapatkan informasi kamar
 $sql = "SELECT k.idKamar, k.namaKamar, k.harga, b.namaBlok, f.namaFasilitas, f.biayaTambahan, k.status
@@ -150,6 +155,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .order-form button:hover {
             background-color: #45a049;
+        }
+
+        #backButton {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 10px 20px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 20px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        #backButton:hover {
+            background-color: #0056b3;
         }
     </style>
     <script>

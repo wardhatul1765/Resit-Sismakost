@@ -4,6 +4,18 @@ include('koneksi.php');
 
 // Ambil parameter ID kamar dari URL
 $idKamar = isset($_GET['idKamar']) ? $_GET['idKamar'] : '';
+$fasilitas = isset($_GET['fasilitas']) ? $_GET['fasilitas'] : '';
+$blok = isset($_GET['blok']) ? $_GET['blok'] : '';
+
+$returnUrl = isset($_GET['returnUrl']) ? $_GET['returnUrl'] : 'daftar_kamar.php';
+echo "<a href='" . $returnUrl . "' id='backButton'>Kembali</a>";
+
+// Validasi parameter
+if (empty($fasilitas) || empty($blok)) {
+    header("Location: daftar_kamar.php");
+    exit;
+}
+
 
 // Query untuk mendapatkan detail kamar berdasarkan ID
 $sql = "SELECT k.idKamar, k.namaKamar, f.namaFasilitas, f.biayaTambahan, b.namaBlok, k.harga, k.status, k.foto, k.deskripsi 
@@ -42,6 +54,24 @@ $deskripsi = $row['deskripsi'];
     <title>Detail Kamar - <?= $namaKamar ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        #backButton {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 10px 20px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 20px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        #backButton:hover {
+            background-color: #0056b3;
+        }
+
         /* Styling dasar */
         body {
             font-family: Arial, sans-serif;
@@ -118,38 +148,40 @@ $deskripsi = $row['deskripsi'];
 </head>
 <body>
 
-<div class="detail-container">
-    <h2>Detail Kamar: <?= $namaKamar ?></h2>
+    <a href="daftar_kamar.php?fasilitas=<?= urlencode($fasilitas) ?>&blok=<?= urlencode($blok) ?>" id="backButton">Kembali</a>
 
-    <!-- Foto Kamar -->
-    <?php if (!empty($foto)): ?>
-        <!-- Menampilkan foto dari path yang disimpan di database -->
-        <img src="uploads/<?= $foto ?>" alt="<?= $namaKamar ?>" class="room-photo" />
-    <?php else: ?>
-        <img src="default-image.jpg" alt="Foto tidak tersedia" class="room-photo" />
-    <?php endif; ?>
+    <div class="detail-container">
+        <h2>Detail Kamar: <?= $namaKamar ?></h2>
 
-    <!-- Detail Kamar -->
-    <div class="room-details">
-        <p><strong>Nama Kamar:</strong> <?= $namaKamar ?></p>
-        <p><strong>Fasilitas:</strong> <?= $namaFasilitas ?></p>
-        <p><strong>Blok:</strong> <?= $namaBlok ?></p>
-        <p><strong>Status:</strong> <?= $status ?></p>
-        <p><strong>Harga:</strong> Rp. <?= number_format($harga, 0, ',', '.') ?></p>
-        <p><strong>Biaya Tambahan:</strong> Rp. <?= number_format($biayaTambahan, 0, ',', '.') ?></p>
-    </div>
+        <!-- Foto Kamar -->
+        <?php if (!empty($foto)): ?>
+            <!-- Menampilkan foto dari path yang disimpan di database -->
+            <img src="uploads/<?= $foto ?>" alt="<?= $namaKamar ?>" class="room-photo" />
+        <?php else: ?>
+            <img src="default-image.jpg" alt="Foto tidak tersedia" class="room-photo" />
+        <?php endif; ?>
 
-    <!-- Deskripsi Kamar -->
-    <div class="description">
-        <h3>Deskripsi Kamar:</h3>
-        <p><?= nl2br($deskripsi) ?></p>
-    </div>
+        <!-- Detail Kamar -->
+        <div class="room-details">
+            <p><strong>Nama Kamar:</strong> <?= $namaKamar ?></p>
+            <p><strong>Fasilitas:</strong> <?= $namaFasilitas ?></p>
+            <p><strong>Blok:</strong> <?= $namaBlok ?></p>
+            <p><strong>Status:</strong> <?= $status ?></p>
+            <p><strong>Harga:</strong> Rp. <?= number_format($harga, 0, ',', '.') ?></p>
+            <p><strong>Biaya Tambahan:</strong> Rp. <?= number_format($biayaTambahan, 0, ',', '.') ?></p>
+        </div>
 
-    <!-- Tombol Pemesanan -->
-    <a href="pemesanan.php?idKamar=<?= $idKamar ?>" class="btn-reservasi">
+        <!-- Deskripsi Kamar -->
+        <div class="description">
+            <h3>Deskripsi Kamar:</h3>
+            <p><?= nl2br($deskripsi) ?></p>
+        </div>
+
+        <!-- Tombol Pemesanan -->
+        <a href='pemesanan.php?idKamar=<?= $idKamar ?>&returnUrl=<?= urlencode($_SERVER['REQUEST_URI']) ?>' class='btn-reservasi'>
         <i class="fas fa-shopping-cart"></i> Pesan Kamar
-    </a>
-</div>
+        </a>
+    </div>
 
 </body>
 </html>
