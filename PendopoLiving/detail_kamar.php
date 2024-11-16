@@ -6,7 +6,7 @@ include('koneksi.php');
 $idKamar = isset($_GET['idKamar']) ? $_GET['idKamar'] : '';
 
 // Query untuk mendapatkan detail kamar berdasarkan ID
-$sql = "SELECT k.idKamar, k.namaKamar, f.namaFasilitas, f.biayaTambahan, b.namaBlok, k.harga, k.status, k.foto, 
+$sql = "SELECT k.idKamar, k.namaKamar, f.namaFasilitas, f.biayaTambahan, b.namaBlok, k.harga, k.status, k.foto, k.deskripsi 
         FROM kamar k
         JOIN kamar_fasilitas kf ON k.idKamar = kf.idKamar
         JOIN fasilitas f ON kf.idFasilitas = f.idFasilitas
@@ -14,6 +14,9 @@ $sql = "SELECT k.idKamar, k.namaKamar, f.namaFasilitas, f.biayaTambahan, b.namaB
         WHERE k.idKamar = '$idKamar'";
 
 $result = mysqli_query($koneksi, $sql);
+if (!$result) {
+    die("Error Query: " . mysqli_error($koneksi));
+}
 $row = mysqli_fetch_assoc($result);
 
 if (!$row) {

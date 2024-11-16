@@ -25,8 +25,8 @@ if ($user_type === 'admin') {
     if ($result->num_rows === 1) {
         $user = $result->fetch_assoc();
         
-        // Verifikasi password langsung tanpa password_verify
-        if ($password === $user['Password']) {
+        // Verifikasi password menggunakan password_verify
+        if (password_verify($password, $user['Password'])) {
             $_SESSION['user_type'] = 'admin';
             $_SESSION['email'] = $email;
             $_SESSION['idAdmin'] = $user['idAdmin'];
@@ -36,8 +36,6 @@ if ($user_type === 'admin') {
         } else {
             $error = "Login Admin gagal! Periksa email dan password.";
         }
-    } else {
-        $error = "Login Admin gagal! Email atau password salah.";
     }
 }
 

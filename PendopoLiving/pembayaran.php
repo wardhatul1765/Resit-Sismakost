@@ -37,6 +37,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $buktiTransfer = '';
     if (isset($_FILES['bukti_transfer']) && $_FILES['bukti_transfer']['error'] == 0) {
         $targetDir = "uploads/";
+        if (!is_dir($targetDir)) {
+            mkdir($targetDir, 0777, true); // Buat folder jika belum ada
+        }
         $targetFile = $targetDir . basename($_FILES["bukti_transfer"]["name"]);
         $fileType = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
 
