@@ -8,7 +8,8 @@ $query_mandi_dalam = "SELECT COUNT(k.idKamar) AS total_kamar
                       FROM kamar k
                       JOIN kamar_fasilitas kf ON k.idKamar = kf.idKamar
                       JOIN fasilitas f ON kf.idFasilitas = f.idFasilitas
-                      WHERE f.namaFasilitas = 'kamar mandi dalam'";
+                      WHERE f.namaFasilitas = 'kamar mandi dalam'
+                      AND k.status = 'tersedia'";
 $result_mandi_dalam = mysqli_query($koneksi, $query_mandi_dalam);
 $data_mandi_dalam = mysqli_fetch_assoc($result_mandi_dalam);
 $total_mandi_dalam = $data_mandi_dalam['total_kamar'];
@@ -18,7 +19,8 @@ $query_mandi_luar = "SELECT COUNT(k.idKamar) AS total_kamar
                      FROM kamar k
                      JOIN kamar_fasilitas kf ON k.idKamar = kf.idKamar
                      JOIN fasilitas f ON kf.idFasilitas = f.idFasilitas
-                     WHERE f.namaFasilitas = 'kamar mandi luar'";
+                     WHERE f.namaFasilitas = 'kamar mandi luar'
+                     AND k.status = 'tersedia'";
 $result_mandi_luar = mysqli_query($koneksi, $query_mandi_luar);
 $data_mandi_luar = mysqli_fetch_assoc($result_mandi_luar);
 $total_mandi_luar = $data_mandi_luar['total_kamar'];
@@ -171,7 +173,7 @@ $total_mandi_luar = $data_mandi_luar['total_kamar'];
             </a>
             <div class="member-info">
               <h4><a href="daftar_kamar.php?fasilitas=kamar mandi dalam">Kamar Mandi Dalam</a></h4>
-              <span>Stok: <?php echo $total_mandi_dalam; ?></span>
+              <span>Semua Kamar: <?php echo $total_mandi_dalam; ?></span>
             </div>
           </div>
         </div><!-- End Team Member -->
@@ -184,7 +186,7 @@ $total_mandi_luar = $data_mandi_luar['total_kamar'];
             </a>
             <div class="member-info">
               <h4><a href="daftar_kamar.php?fasilitas=kamar mandi luar">Kamar Mandi Luar</a></h4>
-              <span>Stok: <?php echo $total_mandi_luar; ?></span>
+              <span>Semua Kamar: <?php echo $total_mandi_luar; ?></span>
             </div>
           </div>
         </div><!-- End Team Member -->

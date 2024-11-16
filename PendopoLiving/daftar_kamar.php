@@ -24,7 +24,7 @@ if (empty($fasilitas)) {
     echo "</div>";
 } else {
     // Jika fasilitas dan blok sudah dipilih, tampilkan daftar kamar yang sesuai
-    $sql = "SELECT k.idKamar, k.namaKamar, f.namaFasilitas, f.biayaTambahan, b.namaBlok, k.harga, k.status
+    $sql = "SELECT k.idKamar, k.namaKamar, f.namaFasilitas, f.biayaTambahan, b.namaBlok, k.harga, k.status, k.foto
             FROM kamar k
             JOIN kamar_fasilitas kf ON k.idKamar = kf.idKamar
             JOIN fasilitas f ON kf.idFasilitas = f.idFasilitas
@@ -37,15 +37,22 @@ if (empty($fasilitas)) {
 
     if (mysqli_num_rows($result) > 0) {
         echo "<h2>Daftar Kamar di Blok $idBlok dengan Fasilitas $fasilitas</h2>";
+        echo "<div class='room-container'>";
         while ($row = mysqli_fetch_assoc($result)) {
             echo "<div class='kamar-item'>";
             echo "<h4>" . $row['namaKamar'] . "</h4>";
-            echo "<p>Fasilitas: " . $row['namaFasilitas'] . "</p>";
-            echo "<p>Biaya Tambahan: Rp. " . number_format($row['biayaTambahan'], 0, ',', '.') . "</p>";
+            if (!empty($row['foto'])) {
+                echo "<img src='path/to/folder/" . $row['foto'] . "' alt='" . $row['namaKamar'] . "' class='room-photo' />";
+            } else {
+                echo "<img src='default-image.jpg' alt='Foto tidak tersedia' class='room-photo' />";
+            }
             echo "<p>Harga: Rp. " . number_format($row['harga'], 0, ',', '.') . "</p>";
             echo "<p>Status: " . $row['status'] . "</p>";
+            echo "<a href='detail_kamar.php?idKamar=" . $row['idKamar'] . "' class='btn-detail'><i class='fas fa-info-circle'></i> Detail Kamar</a>";
+            echo "<a href='pemesanan.php?idKamar=" . $row['idKamar'] . "' class='pemesanan-btn'><i class='fas fa-shopping-cart'></i> Pesan Kamar</a>";
             echo "</div>";
         }
+        echo "</div>";
     } else {
         echo "Tidak ada kamar dengan fasilitas $fasilitas di blok $idBlok.";
     }
@@ -58,6 +65,7 @@ if (empty($fasilitas)) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pilih Blok</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         /* Resetting some default styles */
         body, h2 {
@@ -67,8 +75,8 @@ if (empty($fasilitas)) {
         }
 
         body {
-            background-color: #f4f4f9; /* Soft background color */
-            color: #333; /* Dark text for better readability */
+            background-color: #f4f4f9;
+            color: #333;
             line-height: 1.6;
             padding: 20px;
         }
@@ -76,17 +84,22 @@ if (empty($fasilitas)) {
         h2 {
             text-align: center;
             margin-bottom: 30px;
-            color: #4CAF50; /* Green color for heading */
+            color: #4CAF50;
             font-size: 30px;
             font-weight: bold;
         }
 
+        /* Container for block buttons */
         .blok-buttons {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* Grid layout with responsive columns */
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 20px;
-            justify-items: center; /* Center the buttons */
+            justify-items: center;
             margin-top: 20px;
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
         .blok-btn {
@@ -97,53 +110,91 @@ if (empty($fasilitas)) {
             color: white;
             border-radius: 8px;
             text-align: center;
-            transition: background-color 0.3s ease, transform 0.3s ease; /* Smooth transition */
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); /* Add shadow for better depth */
-            border: none;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border: 2px solid #4CAF50;
         }
 
         .blok-btn:hover {
             background-color: #45a049;
-            transform: scale(1.05); /* Slightly enlarge the button on hover */
-            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
-        }
-
-        /* Add a subtle background and padding for better visual separation */
-        .blok-buttons {
-            background-color: #ffffff;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Optional: Add a border to buttons for further enhancement */
-        .blok-btn {
-            border: 2px solid #4CAF50;
-            transition: background-color 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
-        }
-
-        .blok-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
             border-color: #45a049;
         }
 
-        /* Styling untuk kamar item */
+        /* Container for room items */
+        .room-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* Selalu 3 kolom */
+            gap: 20px;
+            justify-items: center;
+            padding: 10px; /* Mengatur jarak atas, bawah, kanan, dan kiri */
+            margin-left: auto; /* Membuat kontainer terpusat */
+            margin-right: auto;
+            max-width: 1100px; /* Membatasi lebar maksimal agar grid tidak terlalu melebar */
+        }
+
+        /* Styling for each room item */
         .kamar-item {
-            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
             padding: 15px;
-            background-color: #fff;
+            background-color: #ffffff;
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 300px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .kamar-item h4 {
-            margin: 0;
+        .kamar-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .room-name {
+            margin: 10px 0;
             color: #4CAF50;
-            font-size: 24px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .room-photo {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
         }
 
-        .kamar-item p {
+        .price {
+            font-size: 18px;
+            color: #FF5722;
+            font-weight: bold;
             margin: 5px 0;
-            font-size: 16px;
+        }
+
+        .status {
+            font-size: 14px;
+            color: #888;
+            margin: 5px 0;
+        }
+
+        /* Styling for the reservasi button */
+        .btn-reservasi {
+            display: inline-block;
+            background-color: #FF5722;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            margin-top: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-reservasi:hover {
+            background-color: #FF3D00;
         }
     </style>
 </head>
