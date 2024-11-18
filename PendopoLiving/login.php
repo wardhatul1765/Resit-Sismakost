@@ -9,37 +9,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'];
     $password = $_POST['password'];
 
-    // Login Admin
-    if ($user_type === 'admin') {
-        $query = "SELECT * FROM admin WHERE Email = ?";
-        $stmt = $koneksi->prepare($query);
+ // Login Admin
+if ($user_type === 'admin') {
+    $query = "SELECT * FROM admin WHERE Email = ?";
+    $stmt = $koneksi->prepare($query);
     
-        if (!$stmt) {
-            die("Error dalam menyiapkan query: " . $koneksi->error);
-        }
+    if (!$stmt) {
+        die("Error dalam menyiapkan query: " . $koneksi->error);
+    }
     
-        $stmt->bind_param('s', $email);
-        $stmt->execute();
-        $result = $stmt->get_result();
+    $stmt->bind_param('s', $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
     
-        if ($result->num_rows === 1) {
-            $user = $result->fetch_assoc();
-            
-            // Verifikasi password menggunakan password_verify
-            if (password_verify($password, $user['Password'])) {
-                $_SESSION['user_type'] = 'admin';
-                $_SESSION['email'] = $email;
-                $_SESSION['idAdmin'] = $user['idAdmin'];
-                $_SESSION['namaAdmin'] = $user['namaAdmin'];
-                header("Location: dashboard.php");
-                exit;
-            } else {
-                $error = "Login Admin gagal! Periksa email dan password.";
-            }
+    if ($result->num_rows === 1) {
+        $user = $result->fetch_assoc();
+        
+        // Verifikasi password menggunakan password_verify
+        if (password_verify($password, $user['Password'])) {
+            $_SESSION['user_type'] = 'admin';
+            $_SESSION['email'] = $email;
+            $_SESSION['idAdmin'] = $user['idAdmin'];
+            $_SESSION['namaAdmin'] = $user['namaAdmin'];
+            header("Location: dashboard.php");
+            exit;
         } else {
-            $error = "Login Admin gagal! Email atau password salah.";
+            $error = "Login Admin gagal! Periksa email dan password.";
         }
     }
+}
 
     // Proses login untuk penyewa
     elseif ($user_type === 'penyewa') {
