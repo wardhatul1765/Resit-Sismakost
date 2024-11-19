@@ -19,8 +19,6 @@ if (isset($_SESSION['idAdmin'])) {
         } else {
             echo "Error: Failed to execute query.";
         }
-    } else {
-        echo "Error: Unable to prepare query.";
     }
 }
 ?>
@@ -34,6 +32,91 @@ if (isset($_SESSION['idAdmin'])) {
     <link rel="stylesheet" href="style2.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
+    <style>
+        /* Styling untuk profile container */
+        .profile {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border-radius: 20px;
+            margin: auto;
+        }
+
+        .profile .info a {
+            font-weight: bold;
+            color: white; /* Nama pengguna berwarna putih */
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+        .profile .info p {
+            margin: 0;
+            font-size: 12px;
+            color: #ccc;
+        }
+
+        .profile .dropdown-trigger {
+            cursor: pointer;
+            color: white; /* Warna panah dropdown putih */
+            font-size: 18px;
+            margin-top: 5px; /* Jarak antara panah dan teks */
+        }
+
+        /* Styling untuk dropdown menu */
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 120%;
+            left: 100%;
+            transform: translateX(-50%);
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            min-width: 150px;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .dropdown-menu a {
+            display: block;
+            padding: 10px;
+            text-decoration: none;
+            color: black;
+        }
+
+        .dropdown-menu a:hover {
+            background-color: #f1f1f1;
+        }
+
+        .profile.active .dropdown-menu {
+            display: block;
+        }
+    </style>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const profile = document.querySelector('.profile');
+            const dropdownTrigger = profile.querySelector('.dropdown-trigger');
+
+            dropdownTrigger.addEventListener('click', () => {
+                profile.classList.toggle('active');
+            });
+
+            document.addEventListener('click', (event) => {
+                if (!profile.contains(event.target)) {
+                    profile.classList.remove('active');
+                }
+            });
+        });
+    </script>
+
+
+
 </head>
 <body>
 
@@ -64,14 +147,19 @@ if (isset($_SESSION['idAdmin'])) {
                 <!-- Profile Section -->
                 <div class="profile">
                     <div class="info">
-                        <img src="assets/profile.png" alt="Profile">
                         <div>
                             <a href="#"><?php echo htmlspecialchars($namaAdmin); ?></a>
                             <p>Admin</p>
                         </div>
+                        <i class='bx bx-chevron-down dropdown-trigger'></i> <!-- Tambahkan kelas "dropdown-trigger" -->
                     </div>
-                    <i class='bx bx-chevron-down'></i>
+
+                    <!-- Dropdown Menu -->
+                    <div class="dropdown-menu">
+                        <a href="logout.php">Logout</a>
+                    </div>
                 </div>
+
             </div>
         </div>
     </div>

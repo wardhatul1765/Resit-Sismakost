@@ -18,14 +18,14 @@
         <div class="status">
             <div class="header">
                 <h4 id="big">Data Analisis</h4>
-                <h4 id="small">Aktivitas Mingguan</h4>
+                <h4 id="small">Aktivitas Bulanan</h4>
             </div>
 
             <div class="items-list">
                 <div class="item">
                     <div class="info">
                         <div>
-                            <h5>Data Analysis</h5>
+                            <h5>Penyewa</h5>
                             <p>- 3 lessons left</p>
                             <p>- 1 project left</p>
                         </div>
@@ -38,7 +38,7 @@
                 <div class="item">
                     <div class="info">
                         <div>
-                            <h5>Machine Learn</h5>
+                            <h5>Rate Sewa</h5>
                             <p>- 2 assignments left</p>
                             <p>- 5 tutorials left</p>
                         </div>
@@ -51,7 +51,7 @@
                 <div class="item">
                     <div class="info">
                         <div>
-                            <h5>Python</h5>
+                            <h5>Kamar</h5>
                             <p>- 4 chapters left</p>
                             <p>- 8 quizzes left</p>
                         </div>
