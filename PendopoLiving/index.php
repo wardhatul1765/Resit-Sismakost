@@ -65,7 +65,7 @@ $total_mandi_luar = $data_mandi_luar['total_kamar'];
       <a href="index.html" class="logo d-flex align-items-center me-auto">
         <!-- Uncomment the line below if you also wish to use an image logo -->
         <!-- <img src="assetss/img/logo.png" alt=""> -->
-        <h1 class="sitename">Selamat Datang!!</h1>
+        <h1 class="sitename">Elisa Kost</h1>
       </a>
 
       <nav id="navmenu" class="navmenu">
@@ -169,7 +169,7 @@ $total_mandi_luar = $data_mandi_luar['total_kamar'];
         <div class="col-lg-6" data-aos="fade-up" data-aos-delay="100">
           <div class="team-member d-flex align-items-start">
             <a href="daftar_kamar.php?fasilitas=kamar mandi dalam">
-              <div class="pic"><img src="assetss/img/kos.jpeg" class="img-fluid" alt=""></div>
+              <div class="pic"><img src="assetss/img/appartment.jpeg" class="img-fluid" alt=""></div>
             </a>
             <div class="member-info">
               <h4><a href="daftar_kamar.php?fasilitas=kamar mandi dalam">Kamar Mandi Dalam</a></h4>
@@ -182,7 +182,7 @@ $total_mandi_luar = $data_mandi_luar['total_kamar'];
         <div class="col-lg-6" data-aos="fade-up" data-aos-delay="200">
           <div class="team-member d-flex align-items-start">
             <a href="daftar_kamar.php?fasilitas=kamar mandi luar">
-              <div class="pic"><img src="assetss/img/kos.jpeg" class="img-fluid" alt=""></div>
+              <div class="pic"><img src="assetss/img/appartment.jpeg" class="img-fluid" alt=""></div>
             </a>
             <div class="member-info">
               <h4><a href="daftar_kamar.php?fasilitas=kamar mandi luar">Kamar Mandi Luar</a></h4>
@@ -233,7 +233,7 @@ $total_mandi_luar = $data_mandi_luar['total_kamar'];
             <div class="container section-title" data-aos="fade-up">
               <div class="testimonial-item">
                 <h2>Profil Perusahaan</h2>
-                <img src="assetss/img/kos.jpeg" class="testimonial-img" alt="">
+                <img src="assetss/img/appartment.jpeg" class="testimonial-img" alt="">
                 <h3>By Tim Resit</h3>
                 <h4>Website Elisa Kos</h4>
                 <div class="stars">

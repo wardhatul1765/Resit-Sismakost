@@ -20,9 +20,9 @@
 /* Global Colors - The following color variables are used throughout the website. Updating them here will change the color scheme of the entire website */
 :root { 
   --background-color: #ffffff; /* Background color for the entire website, including individual sections */
-  --default-color: #444444; /* Default color used for the majority of the text content across the entire website */
-  --heading-color: #ec81b7; /* Color for headings, subheadings and title throughout the website */
-  --accent-color: #ec8cbc; /* Accent color that represents your brand on the website. It's used for buttons, links, and other elements that need to stand out */
+  --default-color: #55679C; /* Default color used for the majority of the text content across the entire website */
+  --heading-color: #031224; /* Color for headings, subheadings and title throughout the website */
+  --accent-color: #031224; /* Accent color that represents your brand on the website. It's used for buttons, links, and other elements that need to stand out */
   --surface-color: #ffffff; /* The surface color is used as a background of boxed elements within sections, such as cards, icon boxes, or other elements that require a visual separation from the global background. */
   --contrast-color: #ffffff; /* Contrast color for text, ensuring readability against backgrounds of accent, heading, or default colors. */
 }
@@ -46,7 +46,7 @@
 
 .dark-background {
   --background-color: #37517e;
-  --default-color: #ffffff;
+  --default-color: #55679C;
   --heading-color: #ffffff;
   --surface-color: #4668a2;
   --contrast-color: #ffffff;
@@ -83,7 +83,7 @@ h3,
 h4,
 h5,
 h6 {
-  color: rgba(219, 0, 146, 0.9);
+  color: #031224;
   font-family: var(--heading-font);
 }
 
@@ -143,7 +143,7 @@ h6 {
 # Global Header
 --------------------------------------------------------------*/
 .header {
-  --background-color: #e790b7;
+  --background-color: #031224;
   --heading-color: #ffffff;
   color: var(--default-color);
   background-color: var(--background-color);
@@ -214,7 +214,7 @@ h6 {
 /* Index Page Header on Scroll
 ------------------------------*/
 .index-page.scrolled .header {
-  --background-color: rgba(219, 0, 146, 0.9);
+  --background-color: #031224;
 }
 
 /*--------------------------------------------------------------
@@ -849,7 +849,7 @@ section,
 # Hero Section
 --------------------------------------------------------------*/
 .hero {
-  background-color: #ffd4f4;
+  background-color: #031224;
   width: 100%;
   min-height: 80vh;
   position: relative;
@@ -1427,7 +1427,7 @@ section,
 .team .team-member .pic {
   overflow: hidden;
   width: 150px;
-  border-radius: 50%;
+  
   flex-shrink: 0;
 }
 
@@ -1661,8 +1661,8 @@ section,
 }
 
 .testimonials .testimonial-item .testimonial-img {
-  width: 120px;
-  border-radius: 50%;
+  
+  
   border: 4px solid var(--background-color);
   margin: 0 auto;
 }
@@ -2072,14 +2072,15 @@ body {
   padding: 0;
 }
 
-.header {
-  background-color: #e11488;
+header {
+  background-color: #031224;
   color: #f5f4f4;
   padding: 20px 0;
 }
 
+
 .header .logo {
-  color: #ffffff;
+  color: #031224;
   font-size: 24px;
   font-weight: bold;
 }
@@ -2176,7 +2177,7 @@ body {
 }
 
 .scroll-top {
-  background: #ff9800;
+  background: #4c4aec;
   color: #ffffff;
   border-radius: 50%;
   padding: 10px;
