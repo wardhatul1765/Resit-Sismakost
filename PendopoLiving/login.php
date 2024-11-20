@@ -4,6 +4,7 @@ include 'koneksi.php';
 
 $error = ""; // Inisialisasi variabel error
 
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user_type = $_POST['user_type'];
     $email = $_POST['email'];

@@ -3,6 +3,7 @@ session_start();
 
 include 'koneksi.php';
 
+
 // Query untuk mendapatkan total kamar mandi dalam
 $query_mandi_dalam = "SELECT COUNT(k.idKamar) AS total_kamar
                       FROM kamar k
@@ -78,19 +79,22 @@ $total_mandi_luar = $data_mandi_luar['total_kamar'];
     <li><a href="#contact">Contact</a></li>
 
     <?php if (isset($_SESSION['namaPenyewa'])): ?>
-      <!-- Jika pengguna sudah login, tampilkan dropdown -->
-      <li class="dropdown">
-        <a href="#" class="dropdown-toggle">Welcome, <?php echo $_SESSION['namaPenyewa']; ?>!</a>
-        <ul class="dropdown-menu">
-          <li><a href="Profil.php">Profil</a></li> 
-          <li><a href="#">Pesananku</a></li>  
-          <li><a href="logout.php">Logout</a></li>
-        </ul>
-      </li>
-    <?php else: ?>
-      <!-- Jika pengguna belum login, tampilkan opsi Login -->
-      <li><a href="login.php">Login</a></li>
-    <?php endif; ?>
+    <li class="dropdown">
+      <a href="#" class="dropdown-toggle">Welcome, <?php echo $_SESSION['namaPenyewa']; ?>!</a>
+      <ul class="dropdown-menu">
+        <li><a href="Profil.php">Profil</a></li> 
+        <li><a href="pesananku.php">Pesananku</a></li>  
+        <li><a href="logout.php">Logout</a></li>
+      </ul>
+    </li>
+    <?php
+      // Menyimpan idPenyewa dalam variabel tanpa menampilkannya
+      $idPenyewa = $_SESSION['idPenyewa'];
+    ?>
+<?php else: ?>
+    <li><a href="login.php">Login</a></li>
+<?php endif; ?>
+
   </ul>
   <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
 </nav>

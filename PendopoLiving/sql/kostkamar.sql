@@ -202,7 +202,7 @@ CREATE TABLE `pemesanan` (
   `tenggat_uang_muka` date DEFAULT NULL,
   `mulai_menempati_kos` date DEFAULT NULL,
   `batas_menempati_kos` date DEFAULT NULL,
-  `status` enum('Menunggu Pembayaran','Dikonfirmasi','Dibatalkan') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'Menunggu Pembayaran',
+  `status` enum('Menunggu Pembayaran','Menunggu Dikonfirmasi','Dikonfirmasi','Dibatalkan') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'Menunggu Pembayaran',
   `id_penyewa` int DEFAULT NULL,
   `idKamar` int DEFAULT NULL,
   PRIMARY KEY (`id_pemesanan`),
