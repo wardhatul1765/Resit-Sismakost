@@ -25,12 +25,20 @@
     } elseif (empty($blok)) {
         // Jika fasilitas sudah dipilih tetapi blok belum, tampilkan pilihan blok
         echo "<h2>Pilih Blok Kost untuk Fasilitas $fasilitas</h2>";
+        echo "<div class='blok-container'>";
+        echo "<div class='blok-row'>";
+        // echo "<span class='blok-label'>Blok A</span>";
+        // echo "<span class='blok-label'>Blok B</span>";
+        // echo "<span class='blok-label'>Blok C</span>";
+        echo "</div>";
         echo "<div class='blok-buttons'>";
         $blokOptions = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
         foreach ($blokOptions as $blok) {
             echo "<a href='daftar_kamar.php?fasilitas=$fasilitas&blok=$blok' class='blok-btn'>Blok $blok</a>";
         }
         echo "</div>";
+        echo "</div>";
+        
     } else {
         // Jika fasilitas dan blok sudah dipilih, tampilkan daftar kamar yang sesuai
         $sql = "SELECT k.idKamar, k.namaKamar, f.namaFasilitas, f.biayaTambahan, b.namaBlok, k.harga, k.status, k.foto
@@ -118,38 +126,66 @@
                 background-color: #0056b3;
             }
 
-            /* Container for block buttons */
-            .blok-buttons {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-                gap: 20px;
-                justify-items: center;
-                margin-top: 20px;
-                background-color: #ffffff;
-                padding: 40px;
-                border-radius: 12px;
-                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            }
+/* Kontainer Utama */
+.blok-container {
+    display: grid;
+    grid-template-rows: auto auto;
+    gap: 20px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    margin: auto;
+    text-align: center;
+}
 
-            .blok-btn {
-                padding: 15px 25px;
-                font-size: 18px;
-                text-decoration: none;
-                background-color: #4CAF50;
-                color: white;
-                border-radius: 8px;
-                text-align: center;
-                transition: background-color 0.3s ease, transform 0.3s ease;
-                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-                border: 2px solid #4CAF50;
-            }
+/* Label Baris Blok */
+.blok-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Tiga kolom */
+    gap: 10px;
+    font-weight: bold;
+    color: #333;
+    text-transform: uppercase;
+}
 
-            .blok-btn:hover {
-                background-color: #45a049;
-                transform: scale(1.05);
-                box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
-                border-color: #45a049;
-            }
+/* Tombol Blok */
+.blok-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* Tiga kolom untuk peta */
+    gap: 20px;
+}
+
+.blok-btn {
+    padding: 15px 25px;
+    font-size: 18px;
+    text-decoration: none;
+    background-color: #4CAF50;
+    color: white;
+    border-radius: 8px;
+    text-align: center;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    border: 2px solid #4CAF50;
+}
+
+.blok-btn:hover {
+    background-color: #45a049;
+    transform: scale(1.05);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
+    border-color: #45a049;
+}
+
+/* Label Posisi Blok */
+.blok-label {
+    text-align: center;
+    font-size: 16px;
+    color: #555;
+    margin-bottom: 5px;
+}
+
+
 
             /* Container for room items */
             .room-container {

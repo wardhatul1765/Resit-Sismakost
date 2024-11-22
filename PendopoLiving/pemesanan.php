@@ -16,6 +16,9 @@ echo "<a href='" . $returnUrl . "' id='backButton'>Kembali</a>";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
+    
+    $_SESSION['totalBiaya'] = $totalBiaya;
+    $_SESSION['sisaBiaya'] = $sisaBiaya;
     $_SESSION['durasiSewa'] = $durasiSewa;
     
     if ($bringElectronics < 0) {
@@ -72,7 +75,7 @@ $biayaListrik = 15000 * $bringElectronics;
 $totalBiaya = $hargaKamar * $durasiSewa + $biayaTambahan * $durasiSewa + $biayaListrik;
 $dpBiaya = $totalBiaya * 0.30; // 30% dari total biaya
 $sisaBiaya = ($paymentOption == 'dp') ? $totalBiaya - $dpBiaya : 0;
-$_SESSION['sisaBiaya'] = $sisaBiaya; // Menyimpan sisa biaya dalam sesi jika perlu untuk pembayaran berikutnya
+ // Menyimpan sisa biaya dalam sesi jika perlu untuk pembayaran berikutnya
 
 // Sesuaikan dengan metode pembayaran
 if ($paymentOption == 'full') {
