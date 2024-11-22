@@ -27,6 +27,15 @@ if (!$pemesanan) {
     die('Pemesanan tidak ditemukan.');
 }
 
+// Cek jika pemesanan telah dibatalkan
+if ($pemesanan['status'] === 'Dibatalkan') {
+    echo "<script>
+            alert('Pemesanan telah dibatalkan. Tidak dapat melanjutkan pembayaran.');
+            window.location.href='index.php';
+          </script>";
+    exit;
+}
+
 // Periksa tenggat waktu pembayaran untuk DP 30%
 $tanggalSekarang = time(); // Waktu saat ini
 $tenggatUangMuka = strtotime($pemesanan['tenggat_uang_muka']); // Tenggat waktu uang muka
