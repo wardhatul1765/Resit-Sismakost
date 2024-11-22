@@ -1,68 +1,68 @@
+<?php
+// Baca file CSV
+$data = array_map('str_getcsv', file('data_pemesanan_cleaned.csv'));
+
+// Hitung penyewa per bulan dan pendapatan per bulan
+$penyewa_per_bulan = [];
+$pendapatan_per_bulan = [];
+foreach ($data as $row) {
+    $date = strtotime($row[1]); // Asumsi pemesanan_kamar di kolom kedua
+    $month = date('M', $date);
+    $harga_sewa = floatval($row[2]); // Asumsi harga sewa di kolom ketiga
+    
+    if (!isset($penyewa_per_bulan[$month])) {
+        $penyewa_per_bulan[$month] = 0;
+        $pendapatan_per_bulan[$month] = 0;
+    }
+    
+    // Hitung penyewa per bulan
+    $penyewa_per_bulan[$month]++;
+    
+    // Hitung pendapatan per bulan
+    $pendapatan_per_bulan[$month] += $harga_sewa;
+}
+
+// Siapkan data untuk JavaScript
+$labels = array_keys($penyewa_per_bulan);
+$values_penyewa = array_values($penyewa_per_bulan);
+$values_pendapatan = array_values($pendapatan_per_bulan);
+
+// Rata-rata pendapatan per bulan
+$total_pendapatan = array_sum($pendapatan_per_bulan);
+$rata_rata_per_bulan = $total_pendapatan / count($pendapatan_per_bulan);
+
+// Kirim ke frontend
+$penyewa_per_bulan = [
+    'labels' => $labels,
+    'values_penyewa' => $values_penyewa,
+    'values_pendapatan' => $values_pendapatan,
+    'rata_rata_per_bulan' => $rata_rata_per_bulan
+];
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Home - Kost Elisa</title>
-    <!-- Link CSS dan Boxicons -->
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="style2.css">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-
     <!-- Kontainer Atas -->
     <div class="top-container">
-        <!-- Status (konten utama) -->
         <div class="status">
             <div class="header">
                 <h4 id="big">Data Analisis</h4>
                 <h4 id="small">Aktivitas Bulanan</h4>
             </div>
-
             <div class="items-list">
+                <!-- Grafik Aktivitas Bulanan -->
                 <div class="item">
-                    <div class="info">
-                        <div>
-                            <h5>Penyewa</h5>
-                            <p>- 3 lessons left</p>
-                            <p>- 1 project left</p>
-                        </div>
-                        <i class='bx bx-data'></i>
-                    </div>
-                    <div class="progress">
-                        <div class="bar"></div>
-                    </div>
-                </div>
-                <div class="item">
-                    <div class="info">
-                        <div>
-                            <h5>Rate Sewa</h5>
-                            <p>- 2 assignments left</p>
-                            <p>- 5 tutorials left</p>
-                        </div>
-                        <i class='bx bx-terminal'></i>
-                    </div>
-                    <div class="progress">
-                        <div class="bar"></div>
-                    </div>
-                </div>
-                <div class="item">
-                    <div class="info">
-                        <div>
-                            <h5>Kamar</h5>
-                            <p>- 4 chapters left</p>
-                            <p>- 8 quizzes left</p>
-                        </div>
-                        <i class='bx bxl-python'></i>
-                    </div>
-                    <div class="progress">
-                        <div class="bar"></div>
-                    </div>
-                </div>
-                <div class="item">
-                    <canvas class="activity-chart"></canvas>
+                    <canvas id="activity-chart"></canvas>
                 </div>
             </div>
         </div>
@@ -70,93 +70,136 @@
 
     <!-- Kontainer Bawah -->
     <div class="bottom-container">
-        <!-- Status Belajar -->
         <div class="prog-status">
             <div class="header">
-                <h4>Learning Progress</h4>
+                <h5>Pendapatan Tahunan</h5>
                 <div class="tabs">
-                    <a href="#" class="active">1Y</a>
-                    <a href="#">6M</a>
-                    <a href="#">3M</a>
+                    <a href="#" class="active">1thn</a>
+                    <a href="#">6Bln</a>
+                    <a href="#">3Bln</a>
                 </div>
             </div>
-
             <div class="details">
                 <div class="item">
-                    <h2>3.45</h2>
-                    <p>Current GPA</p>
+                    <h2>Rp. <?= number_format($total_pendapatan, 0, ',', '.') ?></h2>
+                    <p>Total Pendapatan</p>
                 </div>
                 <div class="separator"></div>
                 <div class="item">
-                    <h2>4.78</h2>
-                    <p>Class Average GPA</p>
+                    <h2>Rp. <?= number_format($rata_rata_per_bulan, 0, ',', '.') ?></h2>
+                    <p>Rata-Rata per Bulan</p>
                 </div>
             </div>
-
-            <canvas class="prog-chart"></canvas>
+            <!-- Grafik Pendapatan -->
+            <canvas id="prog-chart"></canvas>
         </div>
 
-        <!-- Konten Populer -->
-        <div class="popular">
+        <!-- Kontainer Penyewa per Bulan -->
+        <div class="prog-status">
             <div class="header">
-                <h4>Popular</h4>
-                <a href="#"># Data</a>
+                <h5>Penyewa per Bulan</h5>
             </div>
-
-            <img src="assets/podcast.jpg" alt="Podcast">
-            <div class="audio">
-                <i class='bx bx-podcast'></i>
-                <a href="#">Podcast: Mastering Data Visualization</a>
-            </div>
-            <p>Learn to create compelling visualizations with data.</p>
-            <div class="listen">
-                <div class="author">
-                    <img src="assets/profile.png" alt="Profile">
-                    <div>
-                        <a href="#">Alex</a>
-                        <p>Data Analyst</p>
-                    </div>
-                </div>
-                <button>Listen <i class='bx bx-right-arrow-alt'></i></button>
-            </div>
-        </div>
-
-        <!-- Upcoming Events -->
-        <div class="upcoming">
-            <div class="header">
-                <h4>You may like it</h4>
-                <a href="#">July <i class='bx bx-chevron-down'></i></a>
-            </div>
-
-            <div class="dates">
-                <div class="item">
-                    <h5>Mo</h5>
-                    <a href="#">12</a>
-                </div>
-                <div class="item active">
-                    <h5>Tu</h5>
-                    <a href="#">13</a>
-                </div>
-                <!-- Tambahan tanggal lainnya -->
-            </div>
-
-            <div class="events">
-                <div class="item">
-                    <div>
-                        <i class='bx bx-time'></i>
-                        <div class="event-info">
-                            <a href="#">Data Science</a>
-                            <p>10:00-11:30</p>
-                        </div>
-                    </div>
-                    <i class='bx bx-dots-horizontal-rounded'></i>
-                </div>
-                <!-- Tambahan event lainnya -->
+            <div class="details">
+                <!-- Grafik Penyewa per Bulan -->
+                <canvas id="penyewa-chart"></canvas>
             </div>
         </div>
     </div>
 
     <!-- Skrip JS -->
-    <script src="script2.js"></script>
+    <script>
+        // Mengambil data dari PHP
+        const penyewaData = <?= json_encode($penyewa_per_bulan); ?>;
+
+        // Grafik untuk Aktivitas Bulanan (Penyewa per Bulan)
+        const ctxActivity = document.getElementById('activity-chart').getContext('2d');
+        new Chart(ctxActivity, {
+            type: 'bar',
+            data: {
+                labels: penyewaData.labels, // ['Jan', 'Feb', ...]
+                datasets: [{
+                    label: 'Penyewa per Bulan',
+                    data: penyewaData.values_penyewa, // [10, 20, ...]
+                    backgroundColor: '#60a5fa',
+                    borderWidth: 2,
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        border: { display: true },
+                        grid: { display: true, color: '#1e293b' }
+                    },
+                    y: {
+                        ticks: { display: true }
+                    }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        // Grafik Pendapatan per Bulan
+        const ctxPendapatan = document.getElementById('prog-chart').getContext('2d');
+        new Chart(ctxPendapatan, {
+            type: 'bar',
+            data: {
+                labels: penyewaData.labels, 
+                datasets: [{
+                    label: 'Pendapatan per Bulan (Rp)',
+                    data: penyewaData.values_pendapatan,
+                    backgroundColor: '#1e293b',
+                    borderWidth: 3,
+                    borderRadius: 6,
+                    hoverBackgroundColor: '#60a5fa'
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        grid: { color: '#1e293b' }
+                    },
+                    y: {
+                        ticks: {
+                            callback: function(value) { return 'Rp ' + value.toLocaleString(); }
+                        }
+                    }
+                },
+                plugins: { legend: { display: false } },
+                animation: { duration: 1000 }
+            }
+        });
+
+        // Grafik Penyewa per Bulan
+        const ctxPenyewa = document.getElementById('penyewa-chart').getContext('2d');
+        new Chart(ctxPenyewa, {
+            type: 'bar',
+            data: {
+                labels: penyewaData.labels, 
+                datasets: [{
+                    label: 'Penyewa per Bulan',
+                    data: penyewaData.values_penyewa,
+                    backgroundColor: '#60a5fa',
+                    borderWidth: 2,
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        grid: { color: '#1e293b' }
+                    },
+                    y: {
+                        ticks: { display: true }
+                    }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    </script>
+
 </body>
 </html>

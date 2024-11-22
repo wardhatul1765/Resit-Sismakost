@@ -48,19 +48,20 @@ new Chart(ctx, {
 new Chart(ctx2, {
     type: 'line',
     data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-        datasets: [{
-            label: 'Class GPA',
-            data: [6, 10, 8, 14, 6, 7, 4],
-            borderColor: '#0891b2',
-            tension: 0.4
-        },
-        {
-            label: 'Aver GPA',
-            data: [8, 6, 7, 6, 11, 8, 10],
-            borderColor: '#ca8a04',
-            tension: 0.4
-        }
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        datasets: [
+            {
+                label: 'Class GPA',
+                data: [6, 10, 8, 14, 6, 7, 4, 9, 5, 8, 7, 6],
+                borderColor: '#0891b2',
+                tension: 0.4
+            },
+            {
+                label: 'Aver GPA',
+                data: [8, 6, 7, 6, 11, 8, 10, 9, 6, 7, 8, 9],
+                borderColor: '#ca8a04',
+                tension: 0.4
+            }
         ]
     },
     options: {

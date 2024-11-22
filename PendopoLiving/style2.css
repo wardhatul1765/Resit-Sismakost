@@ -628,3 +628,46 @@ body{
     }
 
 }
+
+.prog-status {
+    width: 48%;
+    margin-right: 2%;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    display: flex; /* Menambahkan flex untuk menjaga struktur */
+    flex-direction: column; /* Menyusun elemen secara vertikal */
+}
+
+.prog-status .header h5 {
+    font-size: 1.2em;
+    margin-bottom: 10px; /* Mengurangi jarak bawah agar lebih rapih */
+}
+
+.prog-status .details {
+    position: relative;
+    flex: 1; /* Memastikan canvas mengisi ruang yang ada */
+    height: auto; /* Sesuaikan dengan konten */
+}
+
+.prog-status .details canvas {
+    width: 100%; /* Membuat canvas responsif mengikuti lebar kontainer */
+    height: 250px; /* Menyesuaikan tinggi grafik agar tidak terlalu kecil */
+    max-height: 300px; /* Membatasi tinggi maksimal */
+    display: block; /* Memastikan canvas tampil dengan benar */
+    margin: 0 auto; /* Center canvas di dalam kontainer */
+}
+
+@media (max-width: 768px) {
+    .prog-status .details canvas {
+        height: 200px; /* Lebih kecil di layar yang lebih kecil */
+    }
+}
+
+@media (max-width: 480px) {
+    .prog-status {
+        width: 100%; /* Menampilkan grafik dengan lebar penuh pada layar kecil */
+    }
+}
