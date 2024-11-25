@@ -57,7 +57,7 @@ $penyewa_per_bulan = [
         <div class="status">
             <div class="header">
                 <h4 id="big">Data Analisis</h4>
-                <h4 id="small">Aktivitas Bulanan</h4>
+                <h4 id="small">Data Kamar</h4>
             </div>
             <div class="items-list">
                 <!-- Grafik Aktivitas Bulanan -->

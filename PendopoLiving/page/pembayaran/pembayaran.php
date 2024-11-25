@@ -16,7 +16,7 @@ function formatRupiah($angka) {
                     <table class="table table-striped table-bordered table-hover" id="dataTables-example">
                         <thead>
                             <tr>
-                                <th>idPembayaran</th>
+                                <!-- <th>idPembayaran</th> -->
                                 <th>Tanggal Pembayaran</th>
                                 <th>Batas Pembayaran</th>
                                 <th>Durasi Sewa</th>
@@ -37,7 +37,6 @@ function formatRupiah($angka) {
                             ?>
                                         <tr class="odd gradeX">
                                             <td><?php echo $no++; ?></td>
-                                            <td><?php echo $data['idPembayaran']; ?></td>
                                             <td><?php echo $data['tanggalPembayaran']; ?></td>
                                             <td><?php echo $data['batasPembayaran']; ?></td>
                                             <td><?php echo $data['durasiSewa']; ?></td>

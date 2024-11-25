@@ -75,7 +75,7 @@ $total_mandi_luar = $data_mandi_luar['total_kamar'];
     <li><a href="#about">About</a></li>
     <li><a href="#team">Data Kamar</a></li> 
     <!-- <li><a href="#testimonials">Fasilitas Kamar</a></li> -->
-    <li><a href="#pemesanan">Pemesanan</a></li>
+    <!-- <li><a href="#pemesanan">Pemesanan</a></li> -->
     <li><a href="#contact">Contact</a></li>
 
     <?php if (isset($_SESSION['namaPenyewa'])): ?>

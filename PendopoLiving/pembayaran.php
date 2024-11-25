@@ -193,10 +193,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <form action="pembayaran.php?idPemesanan=<?php echo $idPemesanan; ?>&idPenyewa=<?php echo $idPenyewa; ?>" method="post" class="payment-form">
         <label for="pembayaran">Pilih Metode Pembayaran</label>
-        <!-- <select name="pembayaran" id="pembayaran" required>
-            <option value="DP 30%">DP 30%</option>
-            <option value="Bayar Penuh">Bayar Penuh</option>
-        </select> -->
+        <select name="pembayaran" id="pembayaran" required>
+            <option value="DP 30%">QRIS</option>
+            <option value="Bayar Penuh">Transfer Bank</option>
+            <option value="Bayar Penuh">Dana</option>
+            <option value="Bayar Penuh">GoPay</option>
+        </select>
 
         <!-- <label for="sisaBiaya">Sisa Biaya</label>
         <input type="number" name="sisaBiaya" id="sisaBiaya" value="<?php echo htmlspecialchars($sisaBiaya); ?>" required> -->

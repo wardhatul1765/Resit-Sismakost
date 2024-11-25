@@ -149,7 +149,7 @@ body{
 }
 
 .top-container .status .header h4#small{
-    flex: 1;
+    flex: 7;
     padding-left: 90px;
 }
 
