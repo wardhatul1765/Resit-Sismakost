@@ -15,10 +15,6 @@ $returnUrl = isset($_GET['returnUrl']) ? $_GET['returnUrl'] : 'daftar_kamar.php'
 echo "<a href='" . $returnUrl . "' id='backButton'>Kembali</a>";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
-    
-    $_SESSION['totalBiaya'] = $totalBiaya;
-    $_SESSION['sisaBiaya'] = $sisaBiaya;
     $_SESSION['durasiSewa'] = $durasiSewa;
     
     if ($bringElectronics < 0) {
@@ -75,7 +71,9 @@ $biayaListrik = 15000 * $bringElectronics;
 $totalBiaya = $hargaKamar * $durasiSewa + $biayaTambahan * $durasiSewa + $biayaListrik;
 $dpBiaya = $totalBiaya * 0.30; // 30% dari total biaya
 $sisaBiaya = ($paymentOption == 'dp') ? $totalBiaya - $dpBiaya : 0;
- // Menyimpan sisa biaya dalam sesi jika perlu untuk pembayaran berikutnya
+
+$_SESSION['totalBiaya'] = $totalBiaya;
+$_SESSION['sisaBiaya'] = $sisaBiaya; // Menyimpan sisa biaya dalam sesi jika perlu untuk pembayaran berikutnya
 
 // Sesuaikan dengan metode pembayaran
 if ($paymentOption == 'full') {
@@ -109,13 +107,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         mysqli_query($koneksi, $updateStatusKamar);
 
         // Query untuk pemesanan
-        $sqlPemesanan = "INSERT INTO pemesanan (pemesanan_kamar, uang_muka, status_uang_muka, tenggat_uang_muka, mulai_menempati_kos, batas_menempati_kos, status, id_penyewa, idKamar)
-                VALUES (NOW(), '$finalBiaya', '$statusUangMuka', '$tenggatWaktu', '$startDate', '$endDate', '$statusPemesanan', '$idPenyewa', '$idKamar')";
+        $sqlPemesanan = "INSERT INTO pemesanan (pemesanan_kamar, uang_muka, status_uang_muka, tenggat_uang_muka, mulai_menempati_kos, batas_menempati_kos, status, sisa_pembayaran, id_penyewa, idKamar)
+                VALUES (NOW(), '$finalBiaya', '$statusUangMuka', '$tenggatWaktu', '$startDate', '$endDate', '$statusPemesanan', '$sisaBiaya', '$idPenyewa', '$idKamar')";
 
         if (mysqli_query($koneksi, $sqlPemesanan)) {
             $idPemesanan = mysqli_insert_id($koneksi);
             mysqli_commit($koneksi);
-            echo "<script>alert('Pemesanan berhasil! Silakan lakukan pembayaran.'); window.location.href='pembayaran.php?idPemesanan=$idPemesanan&idPenyewa=$idPenyewa';</script>";
+            echo "<script>alert('Pemesanan berhasil! Silakan cek pemesanan Anda.'); window.location.href='pesananku.php';</script>";
         } else {
             throw new Exception("Error in pemesanan query: " . mysqli_error($koneksi));
         }
