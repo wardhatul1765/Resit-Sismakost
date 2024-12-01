@@ -1,23 +1,38 @@
 <?php
-// Baca file CSV
-$data = array_map('str_getcsv', file('data_pemesanan_cleaned.csv'));
+// Ambil tahun yang dipilih dari query string atau default ke tahun ini
+$tahunDipilih = isset($_GET['tahun']) ? intval($_GET['tahun']) : date('Y');
+
+// Query untuk mengambil data berdasarkan tahun
+$sql = "SELECT mulai_menempati_kos AS tanggal, uang_muka AS harga_sewa 
+        FROM pemesanan 
+        WHERE YEAR(mulai_menempati_kos) = ?";
+$stmt = $koneksi->prepare($sql);
+$stmt->bind_param("i", $tahunDipilih);
+$stmt->execute();
+$result = $stmt->get_result();
+
+// Simpan data ke array
+$data = [];
+while ($row = $result->fetch_assoc()) {
+    $data[] = $row;
+}
 
 // Hitung penyewa per bulan dan pendapatan per bulan
 $penyewa_per_bulan = [];
 $pendapatan_per_bulan = [];
 foreach ($data as $row) {
-    $date = strtotime($row[1]); // Asumsi pemesanan_kamar di kolom kedua
-    $month = date('M', $date);
-    $harga_sewa = floatval($row[2]); // Asumsi harga sewa di kolom ketiga
-    
+    $date = strtotime($row['tanggal']);
+    $month = date('M', $date); // Format bulan singkat, misalnya 'Jan', 'Feb'
+    $harga_sewa = floatval($row['harga_sewa']);
+
     if (!isset($penyewa_per_bulan[$month])) {
         $penyewa_per_bulan[$month] = 0;
         $pendapatan_per_bulan[$month] = 0;
     }
-    
+
     // Hitung penyewa per bulan
     $penyewa_per_bulan[$month]++;
-    
+
     // Hitung pendapatan per bulan
     $pendapatan_per_bulan[$month] += $harga_sewa;
 }
@@ -29,9 +44,11 @@ $values_pendapatan = array_values($pendapatan_per_bulan);
 
 // Rata-rata pendapatan per bulan
 $total_pendapatan = array_sum($pendapatan_per_bulan);
-$rata_rata_per_bulan = $total_pendapatan / count($pendapatan_per_bulan);
+$rata_rata_per_bulan = count($pendapatan_per_bulan) > 0 
+    ? $total_pendapatan / count($pendapatan_per_bulan) 
+    : 0;
 
-// Kirim ke frontend
+// Kirim data ke frontend
 $penyewa_per_bulan = [
     'labels' => $labels,
     'values_penyewa' => $values_penyewa,
@@ -39,6 +56,8 @@ $penyewa_per_bulan = [
     'rata_rata_per_bulan' => $rata_rata_per_bulan
 ];
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -56,15 +75,14 @@ $penyewa_per_bulan = [
     <div class="top-container">
         <div class="status">
             <div class="header">
-                <h4 id="big">Data Analisis</h4>
-                <h4 id="small">Data Kamar</h4>
+                <h4 id="big">Data Analisis Power BI</h4>
             </div>
-            <div class="items-list">
-                <!-- Grafik Aktivitas Bulanan -->
+            <!-- <div class="items-list"> -->
+                <!-- Embed Power BI -->
                 <div class="item">
-                    <canvas id="activity-chart"></canvas>
+                <iframe title="Project Kost" width="600" height="373.5" src="https://app.powerbi.com/view?r=eyJrIjoiYzIwYWQyYzYtYmU4Ni00NDJjLWIxODQtMzc1ZTVmNmE4YjdhIiwidCI6IjUyNjNjYzgxLTU5MTItNDJjNC1hYmMxLWQwZjFiNjY4YjUzMCIsImMiOjEwfQ%3D%3D" frameborder="0" allowFullScreen="true"></iframe>
                 </div>
-            </div>
+            <!-- </div> -->
         </div>
     </div>
 
@@ -74,22 +92,24 @@ $penyewa_per_bulan = [
             <div class="header">
                 <h5>Pendapatan Tahunan</h5>
                 <div class="tabs">
-                    <a href="#" class="active">1thn</a>
-                    <a href="#">6Bln</a>
-                    <a href="#">3Bln</a>
+                    <a href="?tahun=2024" class="<?= $tahunDipilih == 2024 ? 'active' : '' ?>">2024</a>
+                    <a href="?tahun=2023" class="<?= $tahunDipilih == 2023 ? 'active' : '' ?>">2023</a>
+                    <a href="?tahun=2022" class="<?= $tahunDipilih == 2022 ? 'active' : '' ?>">2022</a>
+                    <a href="?tahun=2021" class="<?= $tahunDipilih == 2021 ? 'active' : '' ?>">2021</a>
                 </div>
             </div>
             <div class="details">
                 <div class="item">
                     <h2>Rp. <?= number_format($total_pendapatan, 0, ',', '.') ?></h2>
-                    <p>Total Pendapatan</p>
+                    <p>Total Pendapatan Tahun <?= $tahunDipilih ?></p>
                 </div>
                 <div class="separator"></div>
                 <div class="item">
                     <h2>Rp. <?= number_format($rata_rata_per_bulan, 0, ',', '.') ?></h2>
-                    <p>Rata-Rata per Bulan</p>
+                    <p>Rata-Rata per Bulan (<?= $tahunDipilih ?>)</p>
                 </div>
             </div>
+
             <!-- Grafik Pendapatan -->
             <canvas id="prog-chart"></canvas>
         </div>
@@ -101,7 +121,7 @@ $penyewa_per_bulan = [
             </div>
             <div class="details">
                 <!-- Grafik Penyewa per Bulan -->
-                <canvas id="penyewa-chart"></canvas>
+                <canvas id="activity-chart"></canvas>
             </div>
         </div>
     </div>
