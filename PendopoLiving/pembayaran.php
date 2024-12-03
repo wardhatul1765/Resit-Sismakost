@@ -5,11 +5,10 @@ session_start(); // Pastikan session sudah dimulai
 // Ambil ID Pemesanan dan Penyewa dengan validasi input
 $idPemesanan = isset($_GET['idPemesanan']) ? $_GET['idPemesanan'] : '';
 $idPenyewa = isset($_GET['idPenyewa']) ? $_GET['idPenyewa'] : '';
-$durasiBaru = isset($_POST['durasi_baru']) ? $_POST['durasi_baru'] : 0;
 
 // Pastikan ID Pemesanan dan Penyewa valid
 if (empty($idPemesanan) || empty($idPenyewa)) {
-    die('ID Pemesanan atau Penyewa tidak valid.');
+    throw new Exception("ID Pemesanan, ID Penyewa tidak ditemukan.");
 }
 
 // Ambil data pemesanan dari database dengan prepared statements
@@ -66,47 +65,57 @@ if (in_array($pemesanan['status'], ['Menunggu Dikonfirmasi', 'Dikonfirmasi'])) {
     }
 }
 
-// Periksa apakah sudah melewati batas waktu menempati kos
-if ($tanggalSekarang > $tanggalBatasKos) {
-    // Mulai transaksi
-    mysqli_begin_transaction($koneksi);
+// Cek apakah status sudah diperbarui sebelumnya di session
+if (!isset($_SESSION['status_diperbarui'])) {
 
-    try {
-        // Update status pembayaran menjadi 'Belum Lunas'
-        $sqlUpdateStatusPembayaran = "UPDATE pembayaran SET StatusPembayaran = 'Belum Lunas' 
-                                      WHERE id_pemesanan = ?";
-        $stmtPembayaran = mysqli_prepare($koneksi, $sqlUpdateStatusPembayaran);
-        mysqli_stmt_bind_param($stmtPembayaran, 's', $idPemesanan);
-        mysqli_stmt_execute($stmtPembayaran);
+    // Cek apakah sudah melewati batas waktu dan status pembayaran atau pemesanan perlu diupdate
+    if ($tanggalSekarang > $tanggalBatasKos) {
+        // Mulai transaksi
+        mysqli_begin_transaction($koneksi);
 
-        // Update status pemesanan menjadi 'Menunggu Pembayaran'
-        $sqlUpdateStatusPemesanan = "UPDATE pemesanan SET status = 'Menunggu Pembayaran' WHERE id_pemesanan = ?";
-        $stmtPemesanan = mysqli_prepare($koneksi, $sqlUpdateStatusPemesanan);
-        mysqli_stmt_bind_param($stmtPemesanan, 's', $idPemesanan);
-        mysqli_stmt_execute($stmtPemesanan);
+        try {
+            // Update status pembayaran menjadi 'Belum Lunas'
+            $sqlUpdateStatusPembayaran = "UPDATE pembayaran SET StatusPembayaran = 'Belum Lunas' WHERE id_pemesanan = ?";
+            $stmtPembayaran = mysqli_prepare($koneksi, $sqlUpdateStatusPembayaran);
+            mysqli_stmt_bind_param($stmtPembayaran, 's', $idPemesanan);
+            mysqli_stmt_execute($stmtPembayaran);
 
-        // Perbarui tenggat_uang_muka ke periode baru (misalnya, 3 hari setelah tanggal sekarang)
-        $tenggatBaru = strtotime("+3 days", $tanggalSekarang);
-        $tenggatBaruFormatted = date('Y-m-d', $tenggatBaru);  
+            // Update status pemesanan menjadi 'Menunggu Pembayaran'
+            $sqlUpdateStatusPemesanan = "UPDATE pemesanan SET status = 'Menunggu Pembayaran' WHERE id_pemesanan = ?";
+            $stmtPemesanan = mysqli_prepare($koneksi, $sqlUpdateStatusPemesanan);
+            mysqli_stmt_bind_param($stmtPemesanan, 's', $idPemesanan);
+            mysqli_stmt_execute($stmtPemesanan);
 
-        // // Debugging: Pastikan tanggal yang dihasilkan benar
-        // echo "Tenggat Baru: " . $tenggatBaruFormatted . "<br>";
+            // Update tenggat_uang_muka ke periode baru
+            $tenggatBaru = strtotime("+3 days", $tanggalSekarang);
+            $tenggatBaruFormatted = date('Y-m-d', $tenggatBaru);
 
-        // Update tenggat_uang_muka di tabel pemesanan
-        $updateTenggat = "UPDATE pemesanan SET tenggat_uang_muka = ? WHERE id_pemesanan = ?";
-        $stmtTenggat = mysqli_prepare($koneksi, $updateTenggat);
-        mysqli_stmt_bind_param($stmtTenggat, 'ss', $tenggatBaruFormatted, $idPemesanan);
-        mysqli_stmt_execute($stmtTenggat);
+            $updateTenggat = "UPDATE pemesanan SET tenggat_uang_muka = ? WHERE id_pemesanan = ?";
+            $stmtTenggat = mysqli_prepare($koneksi, $updateTenggat);
+            mysqli_stmt_bind_param($stmtTenggat, 'ss', $tenggatBaruFormatted, $idPemesanan);
+            mysqli_stmt_execute($stmtTenggat);
 
-        // Commit perubahan jika semua berhasil
-        mysqli_commit($koneksi);
-        echo "<script>alert('Status pembayaran, pemesanan, dan tenggat uang muka telah diperbarui karena melewati batas waktu.');</script>";
-    } catch (Exception $e) {
-        // Rollback jika terjadi kesalahan
-        mysqli_rollback($koneksi);
-        echo "<script>alert('Terjadi kesalahan saat memperbarui status: " . $e->getMessage() . "');</script>";
+            // Commit perubahan
+            mysqli_commit($koneksi);
+
+            // Set session flag agar tidak melakukan update lagi
+            $_SESSION['status_diperbarui'] = true;
+
+            // Tampilkan pesan perubahan hanya jika status diperbarui
+            echo "<script>alert('Status pembayaran, pemesanan, dan tenggat uang muka telah diperbarui.');</script>";
+
+        } catch (Exception $e) {
+            // Rollback jika terjadi kesalahan
+            mysqli_rollback($koneksi);
+            echo "<script>alert('Terjadi kesalahan saat memperbarui status: " . $e->getMessage() . "');</script>";
+        }
     }
+
+} else {
+    // Jika sudah ada flag di session, status sudah diperbarui, tidak tampilkan pesan
+    // Anda bisa menambahkan kode lain di sini jika diperlukan
 }
+
 
 // Validasi apakah tenggat waktu uang muka tersedia dan sudah terlewati
 if (isset($pemesanan['tenggat_uang_muka'])) {
@@ -196,97 +205,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pilih_metode'])) {
         }
     }
     
-    if (strtotime($tanggalPembayaran) > strtotime($batasPembayaran)) {
-        $tampilkanDurasiSewa = true;
-    } else {
-        $tampilkanDurasiSewa = false;
-    }
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unggah_bukti'])) {
-        $targetDir = "uploads/";  // Direktori tempat menyimpan file
-        $fileName = basename($_FILES['bukti_transfer']['name']);  // Ambil nama file
-        $targetFilePath = $targetDir . $fileName;  // Tentukan path lengkap file
-        $fileType = strtolower(pathinfo($targetFilePath, PATHINFO_EXTENSION));  // Mendapatkan ekstensi file
+        if (isset($_FILES['bukti_transfer']) && $_FILES['bukti_transfer']['error'] == 0) {
+            // Tentukan direktori tujuan unggah
+            $targetDir = "uploads/";
+            $fileName = basename($_FILES['bukti_transfer']['name']);
+            $targetFilePath = $targetDir . $fileName;
+            $fileType = strtolower(pathinfo($targetFilePath, PATHINFO_EXTENSION));
     
-        // Validasi ekstensi file
-        $validExtensions = array("jpg", "jpeg", "png", "gif", "pdf");
-        if (!in_array($fileType, $validExtensions)) {
-            echo "<script>alert('Format file tidak valid. Hanya file JPG, PNG, JPEG, GIF, dan PDF yang diperbolehkan.');</script>";
-            exit;
-        }
-        
-        // Cek apakah file berhasil diunggah
-        if (move_uploaded_file($_FILES["bukti_transfer"]["tmp_name"], $targetFilePath)) {
-            // Mulai transaksi
-            mysqli_begin_transaction($koneksi);  // Pastikan transaksi dimulai
+            // Validasi ekstensi file
+            $validExtensions = array("jpg", "jpeg", "png", "gif", "pdf");
+            if (!in_array($fileType, $validExtensions)) {
+                echo "<script>alert('Format file tidak valid. Hanya file JPG, PNG, JPEG, GIF, dan PDF yang diperbolehkan.');</script>";
+                exit;
+            }
     
-            try {
-                // Jika sudah melewati batas_menempati_kos, lakukan perpanjangan
-                if (strtotime($tanggalPembayaran) > strtotime($batasMenempatiKos)) {
-                    // Hitung selisih hari jika sudah melewati batas_menempati_kos
-                    $selisihHari = (strtotime($tanggalPembayaran) - strtotime($batasMenempatiKos)) / (60 * 60 * 24);
-                    $jatuhTempo = (int)$selisihHari;  // Konversi ke integer
+            // Proses unggah file
+            if (move_uploaded_file($_FILES["bukti_transfer"]["tmp_name"], $targetFilePath)) {
+                $sqlUpdatePemesanan = "UPDATE pemesanan SET bukti_transfer = ? WHERE id_pemesanan = ?";
+                $stmtUpdatePemesanan = mysqli_prepare($koneksi, $sqlUpdatePemesanan);
+                mysqli_stmt_bind_param($stmtUpdatePemesanan, 'ss', $fileName, $idPemesanan);
     
-                    // Ambil durasiSewa dan uang_muka lama
-                    $sqlGetOldDurasiSewa = "SELECT pm.uang_muka, pb.durasiSewa 
-                                            FROM pemesanan pm
-                                            JOIN pembayaran pb ON pm.id_pemesanan = pb.id_pemesanan
-                                            WHERE pm.id_pemesanan = ?";
-                    $stmtGetOld = mysqli_prepare($koneksi, $sqlGetOldDurasiSewa);
-                    mysqli_stmt_bind_param($stmtGetOld, 's', $idPemesanan);
-                    mysqli_stmt_execute($stmtGetOld);
-                    mysqli_stmt_bind_result($stmtGetOld, $oldUangMuka, $oldDurasiSewa);
-                    mysqli_stmt_fetch($stmtGetOld);
-                    mysqli_stmt_close($stmtGetOld);
-    
-                    // Ambil durasiSewa baru dari inputan pengguna
-                    $durasiBaru = $_POST['durasi_baru'];  // Durasi sewa baru yang dimasukkan oleh pengguna
-    
-                    // Uang muka per bulan dihitung dari uang muka lama dibagi durasi lama
-                    $uangMukaPerBulan = $oldUangMuka / $oldDurasiSewa;
-    
-                    // Hitung uang muka baru berdasarkan durasi baru
-                    $uangMukaBaru = $uangMukaPerBulan * $durasiBaru;
-    
-                    // Jika durasi sewa baru lebih pendek, hitung pengurangan uang muka
-                    if ($durasiBaru < $oldDurasiSewa) {
-                        // Pengurangan uang muka dihitung berdasarkan selisih durasi sewa
-                        $selisihDurasi = $oldDurasiSewa - $durasiBaru;
-                        $uangMukaBaru = $uangMukaPerBulan * $durasiBaru;  // Uang muka yang sudah dibayar dikurangi sesuai dengan durasi baru
-                    }
-    
-                    // Update pemesanan untuk perpanjangan (update tanggal mulai dan batas sewa)
-                    $sqlUpdatePemesananPerpanjangan = "UPDATE pemesanan SET mulai_menempati_kos = ?, batas_menempati_kos = ?, uang_muka = ? WHERE id_pemesanan = ?";
-                    $stmtUpdatePerpanjangan = mysqli_prepare($koneksi, $sqlUpdatePemesananPerpanjangan);
-                    $tanggalPerpanjangan = date('Y-m-d', strtotime($batasMenempatiKos . ' +1 day')); // Update mulai_menempati_kos
-                    $batasPerpanjangan = date('Y-m-d', strtotime($batasMenempatiKos . ' +30 day')); // Tambah durasi sewa 30 hari
-                    mysqli_stmt_bind_param($stmtUpdatePerpanjangan, 'ssss', $tanggalPerpanjangan, $batasPerpanjangan, $uangMukaBaru, $idPemesanan);
-    
-                    if (mysqli_stmt_execute($stmtUpdatePerpanjangan)) {
-                        // Update data pembayaran untuk perpanjangan (update tanggalPembayaran dan batasPembayaran)
-                        $sqlUpdatePembayaran = "UPDATE pembayaran SET tanggalPembayaran = ?, batasPembayaran = ?, durasiSewa = ?, jatuh_tempo = ?, StatusPembayaran = ? WHERE id_pemesanan = ?";
-                        $batasPembayaran = $batasPerpanjangan;  // Update batas pembayaran sesuai perpanjangan
-                        mysqli_stmt_bind_param($stmtInsert, 'ssisss', $tanggalPembayaran, $batasPembayaran, $durasiBaru, $jatuhTempo, $statusPembayaran, $idPemesanan);
-    
-                        if (mysqli_stmt_execute($stmtInsert)) {
-                            // Update status pemesanan menjadi 'Menunggu Dikonfirmasi'
-                            $sqlUpdatePemesananStatus = "UPDATE pemesanan SET status = 'Menunggu Dikonfirmasi' WHERE id_pemesanan = ?";
-                            $stmtUpdatePemesananStatus = mysqli_prepare($koneksi, $sqlUpdatePemesananStatus);
-                            mysqli_stmt_bind_param($stmtUpdatePemesananStatus, 's', $idPemesanan);
-                            if (mysqli_stmt_execute($stmtUpdatePemesananStatus)) {
-                                // Commit transaksi jika semuanya sukses
-                                mysqli_commit($koneksi);
-                                echo "<script>alert('Perpanjangan pembayaran berhasil diproses. Status pemesanan kini Menunggu Konfirmasi.'); window.location.href='status_pembayaran.php';</script>";
-                            } else {
-                                throw new Exception("Gagal memperbarui status pemesanan. Silakan coba lagi.");
-                            }
-                        } else {
-                            throw new Exception("Gagal memperbarui pembayaran perpanjangan. Pastikan informasi pembayaran telah benar.");
-                        }
-                    } else {
-                        throw new Exception("Gagal memperbarui pemesanan untuk perpanjangan.");
-                    } 
+                if (mysqli_stmt_execute($stmtUpdatePemesanan)) {
+                    echo "<script>alert('Bukti transfer berhasil diupload dan database diperbarui.');</script>";
                 } else {
+                    echo "<script>alert('Terjadi kesalahan saat memperbarui database.');</script>";
+                }
+    
+                // Proses pembayaran untuk kondisi pertama
+                mysqli_begin_transaction($koneksi);  // Pastikan transaksi dimulai
+                try {
                     // Proses untuk pembayaran awal (jika belum melewati batas_menempati_kos)
                     $jatuhTempo = null;  // Jatuh tempo diatur null jika belum melewati batas
                     // Update data pemesanan dengan bukti transfer
@@ -297,7 +246,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pilih_metode'])) {
                         // Insert data pembayaran untuk pembayaran awal
                         $sqlInsertPembayaran = "INSERT INTO pembayaran (tanggalPembayaran, batasPembayaran, durasiSewa, StatusPembayaran, idPenyewa, jatuh_tempo, id_pemesanan) 
                         VALUES (?, ?, ?, ?, ?, ?, ?)";
-                        $durasiSewa = '30';  // Durasi sewa (misal 30 hari)
+    
+                        $stmtInsert = mysqli_prepare($koneksi, $sqlInsertPembayaran);
                         $batasPembayaran = date('Y-m-d', strtotime($tanggalPembayaran . ' +30 day')); // Tentukan batas pembayaran untuk pembayaran awal
                         mysqli_stmt_bind_param($stmtInsert, 'sssssss', $tanggalPembayaran, $batasPembayaran, $durasiSewa, $statusPembayaran, $idPenyewa, $jatuhTempo, $idPemesanan);
     
@@ -319,14 +269,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pilih_metode'])) {
                     } else {
                         throw new Exception("Gagal memperbarui pemesanan. Silakan coba lagi.");
                     }
+                } catch (Exception $e) {
+                    // Jika ada error, rollback transaksi
+                    mysqli_rollback($koneksi);
+                    echo "<script>alert('Terjadi kesalahan: " . $e->getMessage() . "');</script>";
                 }
-            } catch (Exception $e) {
-                // Jika ada error, rollback transaksi
-                mysqli_rollback($koneksi);
-                echo "<script>alert('Terjadi kesalahan: " . $e->getMessage() . "');</script>";
             }
         }
-    }    
+    }
 ?>
 
 
@@ -479,7 +429,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pilih_metode'])) {
             <span class="close">&times;</span>
             <h3>Pilih Metode Pembayaran</h3>
             <!-- Form untuk memilih metode pembayaran dan mengunggah bukti transfer -->
-                 <form action="pembayaran.php?idPemesanan=<?php echo $idPemesanan; ?>&idPenyewa=<?php echo $idPenyewa; ?>" method="post" enctype="multipart/form-data" id="paymentForm">
+            <form action="pembayaran.php?idPemesanan=<?php echo $idPemesanan; ?>&idPenyewa=<?php echo $idPenyewa; ?>" method="post" enctype="multipart/form-data" id="paymentForm">
                 <label for="pembayaran">Metode Pembayaran</label>
                 <select name="pembayaran" id="pembayaran" required>
                     <option value="QRIS" selected>QRIS</option>
@@ -490,15 +440,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pilih_metode'])) {
                 <div id="paymentInstructions">
                     <p><strong>Silakan pilih metode pembayaran untuk melihat instruksi.</strong></p>
                 </div>
-                <?php if ($tampilkanDurasiSewa): ?>
-                    <!-- Input untuk Durasi Sewa Baru -->
-                    <label for="durasi_baru">Durasi Sewa Baru (dalam bulan):</label>
-                    <input type="number" name="durasi_baru" id="durasi_baru" min="1" required>
-                <?php endif; ?>
                  <!-- File Upload for Transfer Proof -->
                 <div id="fileUploadSection" style="display:none;">
                     <label for="bukti_transfer">Unggah Bukti Transfer:</label>
                     <input type="file" name="bukti_transfer" id="bukti_transfer" required>
+                </div>
                     <button type="submit" name="unggah_bukti">Unggah Bukti</button>
                 </div>
             </form>

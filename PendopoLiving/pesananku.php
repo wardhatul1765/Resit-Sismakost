@@ -11,14 +11,19 @@ if (!isset($_SESSION['idPenyewa'])) {
 $idPenyewa = $_SESSION['idPenyewa'];
 
 // Query untuk mendapatkan daftar pesanan penyewa
-$sql = "SELECT p.id_pemesanan, p.pemesanan_kamar, p.uang_muka, p.sisa_pembayaran, p.status, 
-               p.status_uang_muka, p.tenggat_uang_muka, 
-               p.mulai_menempati_kos, p.batas_menempati_kos, 
-               k.namaKamar, b.namaBlok
-        FROM pemesanan p
-        JOIN kamar k ON p.idKamar = k.idKamar
-        JOIN blok b ON k.idBlok = b.idBlok
-        WHERE p.id_penyewa = '$idPenyewa'";
+$sql = "SELECT p.id_pemesanan, p.pemesanan_kamar, p.uang_muka, p.sisa_pembayaran, p.status, p.status_uang_muka, 
+                p.tenggat_uang_muka,p.mulai_menempati_kos, 
+                p.batas_menempati_kos, k.namaKamar, b.namaBlok,pm.idPembayaran 
+            FROM 
+            pemesanan p
+            JOIN 
+            kamar k ON p.idKamar = k.idKamar
+            JOIN 
+            blok b ON k.idBlok = b.idBlok
+            LEFT JOIN 
+            pembayaran pm ON pm.id_pemesanan = p.id_pemesanan -- Join dengan tabel pembayaran
+            WHERE 
+            p.id_penyewa = '$idPenyewa'";
 
 $result = mysqli_query($koneksi, $sql);
 
@@ -28,7 +33,9 @@ if (!$result) {
 
 // Proses upload bukti transfer
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unggah_bukti'])) {
+
     $idPemesanan = $_POST['idPemesanan'];
+    $idPembayaran = $_POST['idPembayaran'];
     $metodePembayaran = $_POST['metode_pembayaran'];
     
     // Proses unggah file
@@ -41,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unggah_bukti'])) {
             // Query untuk memperbarui status pembayaran dan menyimpan bukti transfer
             $update = "UPDATE pemesanan 
                        SET sisa_pembayaran = 0, 
-                           status = 'Lunas', 
+                           status = 'Menunggu Dikonfirmasi', 
                            status_uang_muka = 'Bayar Penuh', 
                            bukti_transfer = '$fileName'
                        WHERE id_pemesanan = '$idPemesanan'";
@@ -92,6 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unggah_bukti'])) {
                 $no = 1;
                 while ($row = mysqli_fetch_assoc($result)) {
                     $idPemesanan = $row['id_pemesanan'];
+                    $idPembayaran = $row['idPembayaran'];
                     $tanggalPemesanan = $row['pemesanan_kamar'];
                     $namaKamar = $row['namaKamar'];
                     $namaBlok = $row['namaBlok'];
