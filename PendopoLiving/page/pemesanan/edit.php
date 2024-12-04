@@ -1,97 +1,100 @@
 <?php
-$id_pemesan = $_GET['id_pemesanan'];
+include '../../koneksi.php';
+
+$id_pemesanan = $_GET['id_pemesanan'] ?? null;
 $sql = $koneksi->query("SELECT * FROM pemesanan WHERE id_pemesanan = '$id_pemesanan'");
 $tampil = $sql->fetch_assoc();
+
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['simpan'])) {
+    $pemesanan_kamar = $_POST['pemesanan_kamar'];
+    $uang_muka = $_POST['uang_muka'];
+    $status_uang_muka = $_POST['status_uang_muka'];
+    $tenggat_uang_muka = $_POST['tenggat_uang_muka'];
+    $mulai_menempati_kos = $_POST['mulai_menempati_kos'];
+    $batas_menempati_kos = $_POST['batas_menempati_kos'];
+    $status = $_POST['status'];
+
+    $update = $koneksi->query("UPDATE pemesanan SET 
+        pemesanan_kamar='$pemesanan_kamar',
+        uang_muka='$uang_muka',
+        status_uang_muka='$status_uang_muka',
+        tenggat_uang_muka='$tenggat_uang_muka',
+        mulai_menempati_kos='$mulai_menempati_kos',
+        batas_menempati_kos='$batas_menempati_kos',
+        status='$status'
+        WHERE id_pemesanan='$id_pemesanan'");
+
+    if ($update) {
+        echo '<script>alert("Data berhasil diperbarui!"); window.location.href="http://localhost/ProjectAkhirS3/Resit-Sismakost/PendopoLiving/dashboard.php?page=pemesanan";</script>';
+    } else {
+        echo '<script>alert("Data gagal diperbarui. Error: ' . $koneksi->error . '");</script>';
+    }
+}
 ?>
 
-<div class="panel panel-default">
-    <div class="panel-heading">
-        Ubah Data Pemesanan
-    </div>
-    <div class="panel-body">
-        <div class="row">
-            <div class="col-md-12">
+<!-- Tampilan Form -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ubah Data Pemesanan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+        <div class="card shadow-lg" style="width: 50%;">
+            <div class="card-header bg-primary text-white text-center">
+                <h4>Ubah Data Pemesanan</h4>
+            </div>
+            <div class="card-body">
                 <form method="POST">
-                    <div class="form-group">
-                        <label>Pemesanan Kamar</label>
-                        <input class="form-control" name="pemesanan_kamar" value="<?php echo $tampil['pemesanan_kamar']; ?>" required/>
+                    <div class="mb-3">
+                        <label for="pemesanan_kamar" class="form-label">Pemesanan Kamar</label>
+                        <input type="text" id="pemesanan_kamar" name="pemesanan_kamar" class="form-control" 
+                               value="<?= $tampil['pemesanan_kamar'] ?>" required>
                     </div>
-
-                    <div class="form-group">
-                        <label>Uang Muka</label>
-                        <input class="form-control" name="uang_muka" value="<?php echo $tampil['uang_muka']; ?>" required/>
+                    <div class="mb-3">
+                        <label for="uang_muka" class="form-label">Uang Muka</label>
+                        <input type="number" id="uang_muka" name="uang_muka" class="form-control" 
+                               value="<?= $tampil['uang_muka'] ?>" step="0.01" required>
                     </div>
-
-                    <div class="form-group">
-                        <label>Status Uang Muka</label>
-                        <select class="form-control" name="status_uang_muka">
-                            <option value="Belum Dibayar" <?php if ($tampil['status_uang_muka'] == 'Belum Dibayar') echo 'selected'; ?>>Belum Dibayar</option>
-                            <option value="Sudah Dibayar" <?php if ($tampil['status_uang_muka'] == 'Sudah Dibayar') echo 'selected'; ?>>Sudah Dibayar</option>
+                    <div class="mb-3">
+                        <label for="status_uang_muka" class="form-label">Status Uang Muka</label>
+                        <select id="status_uang_muka" name="status_uang_muka" class="form-select" required>
+                            <option value="Belum Dibayar" <?= $tampil['status_uang_muka'] == 'Belum Dibayar' ? 'selected' : '' ?>>Belum Dibayar</option>
+                            <option value="Sudah Dibayar" <?= $tampil['status_uang_muka'] == 'Sudah Dibayar' ? 'selected' : '' ?>>Sudah Dibayar</option>
                         </select>
                     </div>
-
-                    <div class="form-group">
-                        <label>Tenggat Uang Muka</label>
-                        <input type="date" class="form-control" name="tenggat_uang_muka" value="<?php echo $tampil['tenggat_uang_muka']; ?>" required/>
+                    <div class="mb-3">
+                        <label for="tenggat_uang_muka" class="form-label">Tenggat Uang Muka</label>
+                        <input type="date" id="tenggat_uang_muka" name="tenggat_uang_muka" class="form-control" 
+                               value="<?= $tampil['tenggat_uang_muka'] ?>" required>
                     </div>
-
-                    <div class="form-group">
-                        <label>Mulai Menempati Kos</label>
-                        <input type="date" class="form-control" name="mulai_menempati_kos" value="<?php echo $tampil['mulai_menempati_kos']; ?>" required/>
+                    <div class="mb-3">
+                        <label for="mulai_menempati_kos" class="form-label">Mulai Menempati Kos</label>
+                        <input type="date" id="mulai_menempati_kos" name="mulai_menempati_kos" class="form-control" 
+                               value="<?= $tampil['mulai_menempati_kos'] ?>" required>
                     </div>
-
-                    <div class="form-group">
-                        <label>Batas Menempati Kos</label>
-                        <input type="date" class="form-control" name="batas_menempati_kos" value="<?php echo $tampil['batas_menempati_kos']; ?>" required/>
+                    <div class="mb-3">
+                        <label for="batas_menempati_kos" class="form-label">Batas Menempati Kos</label>
+                        <input type="date" id="batas_menempati_kos" name="batas_menempati_kos" class="form-control" 
+                               value="<?= $tampil['batas_menempati_kos'] ?>" required>
                     </div>
-
-                    <div class="form-group">
-                        <label>Status</label>
-                        <select class="form-control" name="status">
-                            <option value="Aktif" <?php if ($tampil['status'] == 'Aktif') echo 'selected'; ?>>Aktif</option>
-                            <option value="Tidak Aktif" <?php if ($tampil['status'] == 'Tidak Aktif') echo 'selected'; ?>>Tidak Aktif</option>
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status Pemesanan</label>
+                        <select id="status" name="status" class="form-select" required>
+                            <option value="Menunggu Pembayaran" <?= $tampil['status'] == 'Menunggu Pembayaran' ? 'selected' : '' ?>>Menunggu Pembayaran</option>
+                            <option value="Menunggu Dikonfirmasi" <?= $tampil['status'] == 'Menunggu Dikonfirmasi' ? 'selected' : '' ?>>Menunggu Dikonfirmasi</option>
+                            <option value="Dikonfirmasi" <?= $tampil['status'] == 'Dikonfirmasi' ? 'selected' : '' ?>>Dikonfirmasi</option>
+                            <option value="Dibatalkan" <?= $tampil['status'] == 'Dibatalkan' ? 'selected' : '' ?>>Dibatalkan</option>
                         </select>
                     </div>
-
-                    <div>
-                        <input type="submit" name="simpan" value="Ubah" class="btn btn-primary">
-                    </div>
+                    <button type="submit" name="simpan" class="btn btn-primary w-100">Simpan Perubahan</button>
+                    <a href="?page=pemesanan" class="btn btn-secondary w-100 mt-2">Kembali</a>
                 </form>
             </div>
         </div>
     </div>
-</div>
-
-<?php
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if (isset($_POST['simpan'])) {
-        $pemesanan_kamar = $_POST['pemesanan_kamar'];
-        $uang_muka = $_POST['uang_muka'];
-        $status_uang_muka = $_POST['status_uang_muka'];
-        $tenggat_uang_muka = $_POST['tenggat_uang_muka'];
-        $mulai_menempati_kos = $_POST['mulai_menempati_kos'];
-        $batas_menempati_kos = $_POST['batas_menempati_kos'];
-        $status = $_POST['status'];
-
-        $sql = $koneksi->query("UPDATE pemesanan SET 
-            pemesanan_kamar='$pemesanan_kamar',
-            uang_muka='$uang_muka',
-            status_uang_muka='$status_uang_muka',
-            tenggat_uang_muka='$tenggat_uang_muka',
-            mulai_menempati_kos='$mulai_menempati_kos',
-            batas_menempati_kos='$batas_menempati_kos',
-            status='$status'
-            WHERE id_pemesan='$id_pemesanan'");
-
-        if ($sql) {
-            echo '
-            <script type="text/javascript">
-                alert("Data berhasil disimpan");
-                window.location.href="?page=pemesanan";
-            </script>';
-        } else {
-            echo '<script>alert("Data gagal disimpan");</script>';
-        }
-    }
-}
-?>
+</body>
+</html>

@@ -75,6 +75,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unggah_bukti'])) {
 </head>
 <body>
 <div class="container mt-5">
+    <a href="http://localhost/ProjectAkhirS3/Resit-Sismakost/PendopoLiving/index.php" class="btn btn-primary mb-4">
+            Kembali
+        </a>
     <h2 class="text-center mb-4">Pesanan Anda</h2>
     <table class="table table-striped">
         <thead>

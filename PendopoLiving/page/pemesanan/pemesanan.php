@@ -49,7 +49,7 @@ function formatRupiah($angka) {
                                             <td><?php echo $data['batas_menempati_kos']; ?></td>
                                             <td><?php echo $data['status']; ?></td>
                                             <td>
-                                                <a href="?page=pemesanan&aksi=ubah&idPemesanan=<?php echo $data['id_pemesanan'];?>" class="btn btn-primary">Edit</a>
+                                                <a href="page/pemesanan/edit.php?id_pemesanan=<?php echo $data['id_pemesanan'];?>" class="btn btn-primary">Edit</a>
                                                 <a onclick="return confirm('Apakah Anda Yakin Akan Menghapus Data ini..?')" 
                                                 href="?page=pemesanan&aksi=hapus&idPemesanan=<?php echo $data['id_pemesanan'];?>" class="btn btn-danger">Hapus</a>
                                             </td>

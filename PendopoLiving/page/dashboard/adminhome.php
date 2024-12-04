@@ -1,8 +1,6 @@
 <?php
-// Ambil tahun yang dipilih dari query string atau default ke tahun ini
 $tahunDipilih = isset($_GET['tahun']) ? intval($_GET['tahun']) : date('Y');
 
-// Query untuk mengambil data berdasarkan tahun
 $sql = "SELECT mulai_menempati_kos AS tanggal, uang_muka AS harga_sewa 
         FROM pemesanan 
         WHERE YEAR(mulai_menempati_kos) = ?";
@@ -11,7 +9,6 @@ $stmt->bind_param("i", $tahunDipilih);
 $stmt->execute();
 $result = $stmt->get_result();
 
-// Simpan data ke array
 $data = [];
 while ($row = $result->fetch_assoc()) {
     $data[] = $row;
@@ -22,7 +19,7 @@ $penyewa_per_bulan = [];
 $pendapatan_per_bulan = [];
 foreach ($data as $row) {
     $date = strtotime($row['tanggal']);
-    $month = date('M', $date); // Format bulan singkat, misalnya 'Jan', 'Feb'
+    $month = date('M', $date);
     $harga_sewa = floatval($row['harga_sewa']);
 
     if (!isset($penyewa_per_bulan[$month])) {
@@ -37,7 +34,6 @@ foreach ($data as $row) {
     $pendapatan_per_bulan[$month] += $harga_sewa;
 }
 
-// Siapkan data untuk JavaScript
 $labels = array_keys($penyewa_per_bulan);
 $values_penyewa = array_values($penyewa_per_bulan);
 $values_pendapatan = array_values($pendapatan_per_bulan);
@@ -48,7 +44,6 @@ $rata_rata_per_bulan = count($pendapatan_per_bulan) > 0
     ? $total_pendapatan / count($pendapatan_per_bulan) 
     : 0;
 
-// Kirim data ke frontend
 $penyewa_per_bulan = [
     'labels' => $labels,
     'values_penyewa' => $values_penyewa,
@@ -128,7 +123,6 @@ $penyewa_per_bulan = [
 
     <!-- Skrip JS -->
     <script>
-        // Mengambil data dari PHP
         const penyewaData = <?= json_encode($penyewa_per_bulan); ?>;
 
         // Grafik untuk Aktivitas Bulanan (Penyewa per Bulan)
