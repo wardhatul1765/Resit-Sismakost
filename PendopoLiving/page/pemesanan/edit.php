@@ -91,7 +91,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['simpan'])) {
                         </select>
                     </div>
                     <button type="submit" name="simpan" class="btn btn-primary w-100">Simpan Perubahan</button>
-                    <a href="?page=pemesanan" class="btn btn-secondary w-100 mt-2">Kembali</a>
+                    <button type="button" class="btn btn-secondary w-100 mt-2" onclick="history.back()">Kembali</button>
                 </form>
             </div>
         </div>

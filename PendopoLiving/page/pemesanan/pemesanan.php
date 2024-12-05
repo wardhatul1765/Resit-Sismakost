@@ -16,8 +16,8 @@ function formatRupiah($angka) {
                     <table class="table table-striped table-bordered table-hover" id="dataTables-example">
                         <thead>
                             <tr>
-                                <th>No</th>
-                                <!-- <th>ID Pemesanan</th> -->
+                                <!-- <th>No</th> -->
+                                <th>ID Pemesanan</th>
                                 <th>Pemesanan Kamar</th>
                                 <th>Uang Muka</th>
                                 <th>Status Uang Muka</th>
@@ -39,8 +39,8 @@ function formatRupiah($angka) {
                                     while ($data = $sql->fetch_assoc()) {
                             ?>
                                         <tr class="odd gradeX">
-                                            <td><?php echo $no++; ?></td>
-                                       
+                                            <!-- <td><?php echo $no++; ?></td> -->
+                                            <td><?php echo $data['id_pemesanan']; ?></td>
                                             <td><?php echo $data['pemesanan_kamar']; ?></td>
                                             <td><?php echo formatRupiah($data['uang_muka']); ?></td>
                                             <td><?php echo $data['status_uang_muka']; ?></td>
