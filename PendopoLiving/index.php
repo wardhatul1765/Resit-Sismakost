@@ -316,15 +316,15 @@ $total_mandi_luar = $data_mandi_luar['total_kamar'];
               <div class="col-md-6">
                 <label for="name-field" class="pb-2">Your Name</label>
                 <input type="text" name="name" id="name-field" class="form-control" 
-                       value="<?php echo htmlspecialchars($_SESSION['namaPenyewa'] ?? ''); ?>" 
-                       required readonly>
+                      value="<?php echo isset($_SESSION['namaPenyewa']) ? htmlspecialchars($_SESSION['namaPenyewa']) : ''; ?>" 
+                      <?php echo isset($_SESSION['namaPenyewa']) ? 'readonly' : ''; ?> required>
               </div>
 
               <div class="col-md-6">
                 <label for="email-field" class="pb-2">Your Email</label>
                 <input type="email" name="email" id="email-field" class="form-control" 
-                       value="<?php echo htmlspecialchars($_SESSION['email'] ?? ''); ?>" 
-                       required readonly>
+                      value="<?php echo isset($_SESSION['email']) ? htmlspecialchars($_SESSION['email']) : ''; ?>" 
+                      <?php echo isset($_SESSION['email']) ? 'readonly' : ''; ?> required>
               </div>
 
                 <div class="col-md-12">
