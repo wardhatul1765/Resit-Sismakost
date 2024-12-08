@@ -1,6 +1,12 @@
 <?php
 session_start();
-// Koneksi database
+
+// Periksa apakah pengguna sudah login
+if (!isset($_SESSION['idPenyewa'])) {
+    echo "<script>alert('Anda harus login terlebih dahulu.'); window.location.href='login.php';</script>";
+    exit;
+}
+
 include('koneksi.php');
 
 // Ambil parameter dari URL
