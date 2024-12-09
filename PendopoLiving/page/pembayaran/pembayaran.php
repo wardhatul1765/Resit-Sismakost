@@ -9,20 +9,21 @@ function formatRupiah($angka) {
         <!-- Advanced Tables -->
         <div class="panel panel-default">
             <div class="panel-heading">
-                Data Transaksi
+                Data Pembayaran
             </div>
             <div class="panel-body">
                 <div class="table-responsive">
-                    <table class="table table-striped table-bordered table-hover" id="dataTables-example">
-                        <thead>
+                    <table class="table table-striped table-hover table-bordered text-center">
+                        <thead class="thead-dark">
                             <tr>
-                                <!-- <th>idPembayaran</th> -->
+                                <th>No</th>
                                 <th>Tanggal Pembayaran</th>
                                 <th>Batas Pembayaran</th>
                                 <th>Durasi Sewa</th>
                                 <th>Status Pembayaran</th>
-                                <th>idPenyewa</th>
+                                <th>ID Penyewa</th>
                                 <th>Jatuh Tempo</th>
+                                <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -35,14 +36,33 @@ function formatRupiah($angka) {
                                 } else {
                                     while ($data = $sql->fetch_assoc()) {
                             ?>
-                                        <tr class="odd gradeX">
+                                        <tr>
                                             <td><?php echo $no++; ?></td>
-                                            <td><?php echo $data['tanggalPembayaran']; ?></td>
-                                            <td><?php echo $data['batasPembayaran']; ?></td>
-                                            <td><?php echo $data['durasiSewa']; ?></td>
-                                            <td><?php echo $data['StatusPembayaran']; ?></td>
-                                            <td><?php echo $data['idPenyewa']; ?></td>
-                                            <td><?php echo $data['jatuh_tempo']; ?></td>
+                                            <td><?php echo htmlspecialchars($data['tanggalPembayaran']); ?></td>
+                                            <td><?php echo htmlspecialchars($data['batasPembayaran']); ?></td>
+                                            <td><?php echo htmlspecialchars($data['durasiSewa']); ?> bulan</td>
+                                            <td>
+                                                <?php
+                                                    $status = htmlspecialchars($data['StatusPembayaran']);
+                                                    $badgeClass = ($status === 'Lunas') ? 'badge-success' : 'badge-danger';
+                                                ?>
+                                                <span class="badge <?php echo $badgeClass; ?>">
+                                                    <?php echo $status; ?>
+                                                </span>
+                                            </td>
+                                            <td><?php echo htmlspecialchars($data['idPenyewa']); ?></td>
+                                            <td><?php echo htmlspecialchars($data['jatuh_tempo']); ?></td>
+                                            <td>
+                                                <!-- <a href="?page=pembayaran&aksi=detail&id=<?php echo $data['idPembayaran']; ?>" 
+                                                   class="btn btn-info btn-sm">
+                                                    <i class="fa fa-eye"></i> Detail
+                                                </a>
+                                                <a onclick="return confirm('Apakah Anda yakin akan menghapus data ini?')" 
+                                                   href="?page=pembayaran&aksi=hapus&id=<?php echo $data['idPembayaran']; ?>" 
+                                                   class="btn btn-danger btn-sm">
+                                                    <i class="fa fa-trash"></i> Hapus -->
+                                                </a>
+                                            </td>
                                         </tr>
                             <?php 
                                     }
@@ -51,12 +71,6 @@ function formatRupiah($angka) {
                         </tbody>
                     </table>
                 </div>
-
-                <!-- Tombol untuk Menambah Data -->
-                <a href="?page=pembayaran&aksi=tambah" class="btn btn-primary" style="margin-bottom: 8px;">
-                    <i class="fa fa-plus"></i> Tambah
-                </a>
-                
             </div>
         </div>
         <!-- End Advanced Tables -->

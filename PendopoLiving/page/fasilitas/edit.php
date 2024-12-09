@@ -1,15 +1,21 @@
 <?php
-  $idFasilitas = $_GET['idFasilitas'];
-  $sql = $koneksi->query("SELECT * FROM fasilitas where idFasilitas = '$idFasilitas'");
+$idFasilitas = isset($_GET['idFasilitas']) ? $_GET['idFasilitas'] : null;
+if (!$idFasilitas) {
+    die("ID Fasilitas tidak ditemukan!");
+}
 
-  $tampil = $sql->fetch_assoc();
+$sql = $koneksi->query("SELECT * FROM fasilitas WHERE idFasilitas = '$idFasilitas'");
+$tampil = $sql->fetch_assoc();
 
+if (!$tampil) {
+    die("Data fasilitas dengan ID $idFasilitas tidak ditemukan!");
+}
 ?>
 
 
 <div class="panel panel-default">
     <div class="panel-heading">
-        Ubah data petugas
+        Ubah data fasilitas
     </div>
 
 <div class="panel-body">
