@@ -13,8 +13,8 @@ function formatRupiah($angka) {
             </div>
             <div class="panel-body">
                 <div class="table-responsive">
-                    <table class="table table-striped table-bordered table-hover" id="dataTables-example">
-                        <thead>
+                    <table class="table table-striped table-hover table-bordered text-center">
+                        <thead class="thead-dark">
                             <tr>
                                 <th>No</th>
                                 <th>Nama Kamar</th>
@@ -30,7 +30,6 @@ function formatRupiah($angka) {
                         <tbody>
                             <?php
                                 $no = 1;
-                                // Query untuk mengambil data kamar beserta fasilitas (menggunakan GROUP_CONCAT untuk menggabungkan nama fasilitas)
                                 $sql = $koneksi->query("
                                     SELECT kamar.*, 
                                            GROUP_CONCAT(fasilitas.namaFasilitas ORDER BY fasilitas.namaFasilitas ASC) AS fasilitasList,
@@ -47,26 +46,34 @@ function formatRupiah($angka) {
                                 } else {
                                     while ($data = $sql->fetch_assoc()) {
                             ?>
-                                        <tr class="odd gradeX">
+                                        <tr>
                                             <td><?php echo $no++; ?></td>
-                                            <td><?php echo $data['namaKamar']; ?></td>
-                                            <td><?php echo $data['nomorKamar']; ?></td>
+                                            <td><?php echo htmlspecialchars($data['namaKamar']); ?></td>
+                                            <td><?php echo htmlspecialchars($data['nomorKamar']); ?></td>
                                             <td><?php echo formatRupiah($data['harga']); ?></td>
-                                            <td><?php echo $data['status']; ?></td>
+                                            <td><?php echo htmlspecialchars($data['status']); ?></td>
                                             <td>
-                                                <!-- Gambar kecil yang dapat diklik -->
-                                                <img src="uploads/<?php echo $data['foto']; ?>" alt="Foto Kamar" width="100" data-toggle="modal" data-target="#fotoModal<?php echo $data['idKamar']; ?>">
+                                                <!-- Thumbnail gambar -->
+                                                <img src="uploads/<?php echo $data['foto']; ?>" alt="Foto Kamar" width="100" 
+                                                     data-toggle="modal" data-target="#fotoModal<?php echo $data['idKamar']; ?>" 
+                                                     style="cursor: pointer;">
                                             </td>
-                                            <td><?php echo $data['fasilitasList']; ?></td> <!-- Menampilkan daftar fasilitas -->
-                                            <td><?php echo $data['namaBlok']; ?></td>
+                                            <td><?php echo htmlspecialchars($data['fasilitasList']); ?></td>
+                                            <td><?php echo htmlspecialchars($data['namaBlok']); ?></td>
                                             <td>
-                                                <a href="?page=kamar&aksi=edit&idKamar=<?php echo $data['idKamar'];?>" class="btn btn-primary">Edit</a>
+                                                <a href="?page=kamar&aksi=edit&idKamar=<?php echo $data['idKamar']; ?>" 
+                                                   class="btn btn-primary btn-sm">
+                                                    <i class="fa fa-edit"></i> Edit
+                                                </a>
                                                 <a onclick="return confirm('Apakah Anda Yakin Akan Menghapus Data ini..?')" 
-                                                href="?page=kamar&aksi=hapus&idKamar=<?php echo $data['idKamar'];?>" class="btn btn-danger">Hapus</a>
+                                                   href="?page=kamar&aksi=hapus&idKamar=<?php echo $data['idKamar']; ?>" 
+                                                   class="btn btn-danger btn-sm">
+                                                    <i class="fa fa-trash"></i> Hapus
+                                                </a>
                                             </td>
                                         </tr>
 
-                                        <!-- Modal untuk menampilkan gambar besar -->
+                                        <!-- Modal untuk foto besar -->
                                         <div class="modal fade" id="fotoModal<?php echo $data['idKamar']; ?>" tabindex="-1" role="dialog" aria-labelledby="fotoModalLabel<?php echo $data['idKamar']; ?>" aria-hidden="true">
                                             <div class="modal-dialog" role="document">
                                                 <div class="modal-content">
@@ -77,7 +84,6 @@ function formatRupiah($angka) {
                                                         <h5 class="modal-title" id="fotoModalLabel<?php echo $data['idKamar']; ?>">Foto Kamar</h5>
                                                     </div>
                                                     <div class="modal-body">
-                                                        <!-- Gambar besar dalam modal -->
                                                         <img src="uploads/<?php echo $data['foto']; ?>" alt="Foto Kamar" class="img-fluid">
                                                     </div>
                                                 </div>
@@ -91,12 +97,12 @@ function formatRupiah($angka) {
                     </table>
                 </div>
 
-                <!-- Buttons for Adding and Exporting -->
-                <a href="?page=kamar&aksi=tambah" class="btn btn-primary" style="margin-bottom: 8px;">
+                <!-- Tombol Tambah -->
+                <a href="?page=kamar&aksi=tambah" class="btn btn-success btn-sm" style="margin-bottom: 8px;">
                     <i class="fa fa-plus"></i> Tambah
                 </a>
-                
+            </div>
         </div>
-        <!-- End Advanced Tables -->
     </div>
 </div>
+

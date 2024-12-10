@@ -14,7 +14,7 @@ class PHP_Email_Form {
     public $subject;
     public $smtp = []; // SMTP Configuration
     public $messages = []; // Message Content
-    public $ajax = true; // Use AJAX if necessary
+    public $ajax = false; // Use AJAX if necessary
 
     public function add_message($content, $key = '', $priority = 0) {
         $this->messages[] = [
@@ -61,10 +61,15 @@ class PHP_Email_Form {
     
           // Send email
           $mail->send();
-          return 'Message sent successfully!';
-      } catch (Exception $e) {
-          return "SMTP Error: {$mail->ErrorInfo}";
-      }
+    // Cek skrip yang digunakan dan kembalikan pesan yang sesuai
+    if (basename($_SERVER['PHP_SELF']) == 'contact.php') {
+        return 'Your message has been sent. Thank you!';
+    } elseif (basename($_SERVER['PHP_SELF']) == 'newsletter.php') {
+        return 'Your subscription request has been sent. Thank you!';
+    }
+} catch (Exception $e) {
+    return "SMTP Error: {$mail->ErrorInfo}";
+}
     }    
   }
 

@@ -21,6 +21,15 @@ if (isset($_SESSION['idAdmin'])) {
         }
     }
 }
+
+// Cek status pemesanan yang masih "Menunggu Dikonfirmasi"
+$query = "SELECT COUNT(*) FROM pemesanan WHERE status = 'Menunggu Dikonfirmasi'";
+$result = $koneksi->query($query);
+$row = $result->fetch_row();
+$pendingOrders = $row[0]; // Jumlah pemesanan yang belum dikonfirmasi
+
+// Jika ada pemesanan yang belum dikonfirmasi, tampilkan indikator
+$showBellIndicator = $pendingOrders > 0 ? 'block' : 'none';
 ?>
 
 <!DOCTYPE html>
@@ -32,6 +41,7 @@ if (isset($_SESSION['idAdmin'])) {
     <link rel="stylesheet" href="style2.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
 
     <style>
         /* Styling untuk profile container */
@@ -45,6 +55,36 @@ if (isset($_SESSION['idAdmin'])) {
             border-radius: 20px;
             margin: auto;
         }
+
+       /* Styling untuk ikon bell */
+        .right-section .bx-bell {
+            position: relative; /* Posisi relatif untuk penempatan badge */
+            font-size: 16px; /* Ukuran ikon bel */
+            margin-left: 20px;
+        }
+
+        .badge-indicator {
+            position: absolute;
+            top: -5px; /* Atur sedikit di atas */
+            right: -5px; /* Atur sedikit di kanan */
+            background-color: red; /* Warna latar belakang badge */
+            color: white; /* Warna teks badge */
+            border-radius: 50%; /* Bentuk bulat */
+            width: 15px; /* Lebar badge */
+            height: 15px; /* Tinggi badge */
+            display: none; /* Tersembunyi secara default */
+            text-align: center; /* Pusatkan angka di dalam badge */
+            font-size: 12px; /* Ukuran teks angka */
+            font-weight: bold; /* Menebalkan teks */
+            line-height: 15px; /* Menjaga angka berada di tengah secara vertikal */
+        }
+
+        /* Menampilkan indikator jika ada notifikasi */
+        #bell-indicator {
+            display: block; /* Tampilkan indikator jika ada pemesanan yang menunggu konfirmasi */
+        }
+
+
 
         .profile .info a {
             font-weight: bold;
@@ -95,30 +135,153 @@ if (isset($_SESSION['idAdmin'])) {
         .profile.active .dropdown-menu {
             display: block;
         }
+
+        .table th, .table td {
+         vertical-align: middle; /* Teks di tengah secara vertikal */
+        }
+
+        .table img {
+            max-width: 100px; /* Ukuran maksimum untuk gambar */
+            height: auto;
+            border-radius: 5px; /* Tambahkan border radius jika diperlukan */
+            object-fit: cover;
+        }
+
+            /* Mengatur modal agar sesuai dengan lebar kolom */
+        .custom-modal .modal-dialog {
+            max-width: 100%; /* Memaksimalkan lebar hingga ukuran kontainer */
+            width: 80%; /* Pastikan ukurannya proporsional */
+            margin: auto; /* Pusatkan modal */
+        }
+
+        .custom-modal .modal-content {
+            overflow-x: auto; /* Tambahkan scroll horizontal jika tabel lebih lebar */
+        }
+
+        /* Tambahkan padding untuk membuat tampilan lebih rapi */
+        .custom-modal .modal-body {
+            padding: 20px;
+        }
+
     </style>
 
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const profile = document.querySelector('.profile');
-            const dropdownTrigger = profile.querySelector('.dropdown-trigger');
+ document.addEventListener('DOMContentLoaded', () => {
+    // Tampilkan modal dropdown pada profile
+    const profile = document.querySelector('.profile');
+    const dropdownTrigger = profile.querySelector('.dropdown-trigger');
 
-            dropdownTrigger.addEventListener('click', () => {
-                profile.classList.toggle('active');
-            });
+    dropdownTrigger.addEventListener('click', () => {
+        profile.classList.toggle('active');
+    });
 
-            document.addEventListener('click', (event) => {
-                if (!profile.contains(event.target)) {
-                    profile.classList.remove('active');
-                }
-            });
+    document.addEventListener('click', (event) => {
+        if (!profile.contains(event.target)) {
+            profile.classList.remove('active');
+        }
+    });
+
+    // Tampilkan modal bell notification
+    const bellIcon = document.querySelector('.bx-bell');
+    const bellIndicator = document.getElementById('bell-indicator');
+    <?php echo "bellIndicator.style.display = '$showBellIndicator';"; ?>
+
+    bellIcon.addEventListener('click', () => {
+        fetchPendingOrders();
+        $('#pendingOrdersModal').modal('show'); // Tampilkan modal pemesanan
+    });
+
+    // Input pencarian dalam tabel pemesanan
+    const searchInput = document.getElementById('searchInput');
+    const tableBody = document.getElementById('pendingOrdersTableBody');
+
+    searchInput.addEventListener('input', () => {
+        const query = searchInput.value.toLowerCase();
+        let visibleRows = 0;
+
+        Array.from(tableBody.rows).forEach(row => {
+            const cells = Array.from(row.cells);
+            const rowText = cells.map(cell => cell.textContent.toLowerCase()).join(' ');
+
+            if (rowText.includes(query)) {
+                row.style.display = ''; // Tampilkan baris
+                visibleRows++;
+            } else {
+                row.style.display = 'none'; // Sembunyikan baris
+            }
         });
+
+        // Tampilkan pesan jika tidak ada data ditemukan
+        if (visibleRows === 0) {
+            if (!document.getElementById('noDataRow')) {
+                const noDataRow = document.createElement('tr');
+                noDataRow.id = 'noDataRow';
+                noDataRow.innerHTML = `<td colspan="8">Tidak ada data ditemukan</td>`;
+                tableBody.appendChild(noDataRow);
+            }
+        } else {
+            const noDataRow = document.getElementById('noDataRow');
+            if (noDataRow) {
+                noDataRow.remove();
+            }
+        }
+    });
+
+    // Event listener untuk gambar bukti transfer
+    tableBody.addEventListener('click', (event) => {
+        if (event.target.tagName === 'IMG') {
+            const imgSrc = event.target.getAttribute('src');
+            const modalImage = document.getElementById('modalImage');
+            modalImage.setAttribute('src', imgSrc);
+            $('#imageModal').modal('show'); // Tampilkan modal gambar
+        }
+    });
+});
+
+// Fungsi untuk mengambil data pemesanan yang menunggu konfirmasi
+function fetchPendingOrders() {
+    fetch('fetch_pending_orders.php')
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.getElementById('pendingOrdersTableBody');
+            tableBody.innerHTML = ''; // Bersihkan data sebelumnya
+
+            if (data.length > 0) {
+                data.forEach(order => {
+                    const row = `
+                       <tr>
+                            <td>${order.id_pemesanan}</td>
+                            <td>${order.id_penyewa}</td>
+                            <td>${order.idKamar}</td>
+                            <td>${order.pemesanan_kamar}</td>
+                            <td>${order.uang_muka}</td>
+                            <td>${order.status_uang_muka}</td>
+                            <td>
+                                <img src="uploads/${order.bukti_transfer}" alt="Bukti Transfer" class="img-thumbnail" style="cursor: pointer;">
+                            </td>
+                            <td>${order.status}</td>
+                            <td>
+                                <a href="generate_invoice.php?id_pemesanan=${order.id_pemesanan}&id_kamar=${order.idKamar}&id_penyewa=${order.id_penyewa}" class="btn btn-success">Konfirmasi</a>
+                            </td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+            } else {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="8">Tidak ada data ditemukan</td>
+                    </tr>
+                `;
+            }
+        })
+        .catch(error => console.error('Error fetching data:', error));
+}
     </script>
-
-
-
 </head>
 <body>
+    
 
     <!-- Navbar -->
     <div class="top-container">
@@ -141,7 +304,12 @@ if (isset($_SESSION['idAdmin'])) {
 
             <!-- Right Section (Notification, Search, Profile) -->
             <div class="right-section">
-                <i class='bx bx-bell'></i>
+                <i class='bx bx-bell'>
+                    <span id="bell-indicator" class="badge-indicator" style="display: <?php echo $showBellIndicator; ?>;">
+                        <!-- <?php echo $pendingOrders > 0 ? $pendingOrders : ''; ?> -->
+                    </span> <!-- Indikator notifikasi dengan angka -->
+                </i>
+                <i class='bx bx-envelope'></i>
                 <i class='bx bx-search'></i>
 
                 <!-- Profile Section -->
@@ -160,6 +328,57 @@ if (isset($_SESSION['idAdmin'])) {
                     </div>
                 </div>
 
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Pending Orders -->
+    <div class="modal fade custom-modal" id="pendingOrdersModal" tabindex="-1" aria-labelledby="pendingOrdersModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pendingOrdersModalLabel">Daftar Pemesanan - Menunggu Dikonfirmasi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                 <!-- Input Pencarian -->
+                 <div class="mb-3">
+                        <input type="text" id="searchInput" class="form-control" placeholder="Cari">
+                    </div>
+                    <table class="table table-bordered table-striped table-hover text-center">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>ID Pemesanan</th>
+                                <th>ID Penyewa</th>
+                                <th>ID Kamar</th>
+                                <th>Pemesanan Kamar</th>
+                                <th>Uang Muka</th>
+                                <th>Status Uang Muka</th>
+                                <th>Bukti Transfer</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pendingOrdersTableBody">
+                            <!-- Data akan diinject secara dinamis via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <!-- Modal untuk melihat bukti transfer -->
+    <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="imageModalLabel">Bukti Transfer</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="modalImage" src="" alt="Bukti Transfer" class="img-fluid rounded">
+                </div>
             </div>
         </div>
     </div>
@@ -248,5 +467,6 @@ if (isset($_SESSION['idAdmin'])) {
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

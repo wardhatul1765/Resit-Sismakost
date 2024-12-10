@@ -13,8 +13,8 @@ function formatRupiah($angka) {
             </div>
             <div class="panel-body">
                 <div class="table-responsive">
-                    <table class="table table-striped table-bordered table-hover" id="dataTables-example">
-                        <thead>
+                    <table class="table table-striped table-hover table-bordered text-center" id="dataTables-example">
+                        <thead class="thead-dark">
                             <tr>
                                 <th>No</th>
                                 <th>Nama Penyewa</th>
@@ -39,26 +39,52 @@ function formatRupiah($angka) {
                                     echo "<tr><td colspan='7'>Error: " . $koneksi->error . "</td></tr>";
                                 } else {
                                     while ($data = $sql->fetch_assoc()) {
+                                        $namaKamar = $data['namaKamar'] ?? 'Belum Terpilih';
+                                        $fotoJaminan = $data['fotoJaminan'];
                             ?>
-                                        <tr class="odd gradeX">
+                                        <tr>
                                             <td><?php echo $no++; ?></td>
-                                            <td><?php echo $data['namaPenyewa']; ?></td>
-                                            <td><?php echo $data['noTelepon']; ?></td>
-                                            <td><?php echo $data['email']; ?></td>
-                                            <td><?php echo $data['namaKamar'] ?? 'Belum Terpilih'; ?></td>
+                                            <td><?php echo htmlspecialchars($data['namaPenyewa']); ?></td>
+                                            <td><?php echo htmlspecialchars($data['noTelepon']); ?></td>
+                                            <td><?php echo htmlspecialchars($data['email']); ?></td>
+                                            <td><?php echo htmlspecialchars($namaKamar); ?></td>
                                             <td>
-                                                <?php if ($data['fotoJaminan']): ?>
-                                                    <img src="path/to/folder/<?php echo $data['fotoJaminan']; ?>" width="50" height="50" alt="Foto Jaminan">
+                                                <?php if ($fotoJaminan): ?>
+                                                    <!-- Gambar kecil dapat diklik untuk melihat lebih besar -->
+                                                    <img src="uploads/<?php echo htmlspecialchars($fotoJaminan); ?>" width="50" height="50" class="img-thumbnail" 
+                                                         alt="Foto Jaminan" data-toggle="modal" data-target="#jaminanModal<?php echo $data['idPenyewa']; ?>">
                                                 <?php else: ?>
-                                                    Tidak ada foto
+                                                    <span class="text-muted">Tidak ada foto</span>
                                                 <?php endif; ?>
                                             </td>
                                             <td>
-                                                <a href="?page=penyewa&aksi=ubah&idPenyewa=<?php echo $data['idPenyewa'];?>" class="btn btn-primary">Edit</a>
-                                                <a onclick="return confirm('Apakah Anda Yakin Akan Menghapus Data ini..?')" 
-                                                href="?page=penyewa&aksi=hapus&idPenyewa=<?php echo $data['idPenyewa'];?>" class="btn btn-danger">Hapus</a>
+                                                <a href="?page=penyewa&aksi=edit&idPenyewa=<?php echo $data['idPenyewa'];?>" class="btn btn-primary btn-sm">
+                                                    <i class="fa fa-edit"></i> Edit
+                                                </a>
+                                                <a onclick="return confirm('Apakah Anda yakin akan menghapus data ini?')" 
+                                                   href="?page=penyewa&aksi=hapus&idPenyewa=<?php echo $data['idPenyewa'];?>" 
+                                                   class="btn btn-danger btn-sm">
+                                                    <i class="fa fa-trash"></i> Hapus
+                                                </a>
                                             </td>
                                         </tr>
+
+                                        <!-- Modal untuk melihat gambar jaminan -->
+                                        <div class="modal fade" id="jaminanModal<?php echo $data['idPenyewa']; ?>" tabindex="-1" role="dialog" aria-labelledby="jaminanModalLabel<?php echo $data['idPenyewa']; ?>" aria-hidden="true">
+                                            <div class="modal-dialog" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="jaminanModalLabel<?php echo $data['idPenyewa']; ?>">Foto Jaminan</h5>
+                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <div class="modal-body text-center">
+                                                        <img src="uploads/<?php echo htmlspecialchars($fotoJaminan); ?>" alt="Foto Jaminan" class="img-fluid">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                             <?php 
                                     }
                                 } 
@@ -67,11 +93,10 @@ function formatRupiah($angka) {
                     </table>
                 </div>
 
-                <!-- Buttons for Adding and Exporting -->
+                <!-- Tombol untuk menambah data -->
                 <a href="?page=penyewa&aksi=tambah" class="btn btn-primary" style="margin-bottom: 8px;">
                     <i class="fa fa-plus"></i> Tambah
                 </a>
-                
             </div>
         </div>
         <!-- End Advanced Tables -->

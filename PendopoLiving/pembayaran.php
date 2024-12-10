@@ -65,91 +65,91 @@ if (in_array($pemesanan['status'], ['Menunggu Dikonfirmasi', 'Dikonfirmasi'])) {
     }
 }
 
-// Cek apakah status sudah diperbarui sebelumnya di session
-if (!isset($_SESSION['status_diperbarui'])) {
+// // Cek apakah status sudah diperbarui sebelumnya di session
+// if (!isset($_SESSION['status_diperbarui'])) {
 
-    // Cek apakah sudah melewati batas waktu dan status pembayaran atau pemesanan perlu diupdate
-    if ($tanggalSekarang > $tanggalBatasKos) {
-        // Mulai transaksi
-        mysqli_begin_transaction($koneksi);
+//     // Cek apakah sudah melewati batas waktu dan status pembayaran atau pemesanan perlu diupdate
+//     if ($tanggalSekarang > $tanggalBatasKos) {
+//         // Mulai transaksi
+//         mysqli_begin_transaction($koneksi);
 
-        try {
-            // Update status pembayaran menjadi 'Belum Lunas'
-            $sqlUpdateStatusPembayaran = "UPDATE pembayaran SET StatusPembayaran = 'Belum Lunas' WHERE id_pemesanan = ?";
-            $stmtPembayaran = mysqli_prepare($koneksi, $sqlUpdateStatusPembayaran);
-            mysqli_stmt_bind_param($stmtPembayaran, 's', $idPemesanan);
-            mysqli_stmt_execute($stmtPembayaran);
+//         try {
+//             // Update status pembayaran menjadi 'Belum Lunas'
+//             $sqlUpdateStatusPembayaran = "UPDATE pembayaran SET StatusPembayaran = 'Belum Lunas' WHERE id_pemesanan = ?";
+//             $stmtPembayaran = mysqli_prepare($koneksi, $sqlUpdateStatusPembayaran);
+//             mysqli_stmt_bind_param($stmtPembayaran, 's', $idPemesanan);
+//             mysqli_stmt_execute($stmtPembayaran);
 
-            // Update status pemesanan menjadi 'Menunggu Pembayaran'
-            $sqlUpdateStatusPemesanan = "UPDATE pemesanan SET status = 'Menunggu Pembayaran' WHERE id_pemesanan = ?";
-            $stmtPemesanan = mysqli_prepare($koneksi, $sqlUpdateStatusPemesanan);
-            mysqli_stmt_bind_param($stmtPemesanan, 's', $idPemesanan);
-            mysqli_stmt_execute($stmtPemesanan);
+//             // Update status pemesanan menjadi 'Menunggu Pembayaran'
+//             $sqlUpdateStatusPemesanan = "UPDATE pemesanan SET status = 'Menunggu Pembayaran' WHERE id_pemesanan = ?";
+//             $stmtPemesanan = mysqli_prepare($koneksi, $sqlUpdateStatusPemesanan);
+//             mysqli_stmt_bind_param($stmtPemesanan, 's', $idPemesanan);
+//             mysqli_stmt_execute($stmtPemesanan);
 
-            // Update tenggat_uang_muka ke periode baru
-            $tenggatBaru = strtotime("+3 days", $tanggalSekarang);
-            $tenggatBaruFormatted = date('Y-m-d', $tenggatBaru);
+//             // Update tenggat_uang_muka ke periode baru
+//             $tenggatBaru = strtotime("+3 days", $tanggalSekarang);
+//             $tenggatBaruFormatted = date('Y-m-d', $tenggatBaru);
 
-            $updateTenggat = "UPDATE pemesanan SET tenggat_uang_muka = ? WHERE id_pemesanan = ?";
-            $stmtTenggat = mysqli_prepare($koneksi, $updateTenggat);
-            mysqli_stmt_bind_param($stmtTenggat, 'ss', $tenggatBaruFormatted, $idPemesanan);
-            mysqli_stmt_execute($stmtTenggat);
+//             $updateTenggat = "UPDATE pemesanan SET tenggat_uang_muka = ? WHERE id_pemesanan = ?";
+//             $stmtTenggat = mysqli_prepare($koneksi, $updateTenggat);
+//             mysqli_stmt_bind_param($stmtTenggat, 'ss', $tenggatBaruFormatted, $idPemesanan);
+//             mysqli_stmt_execute($stmtTenggat);
 
-            // Commit perubahan
-            mysqli_commit($koneksi);
+//             // Commit perubahan
+//             mysqli_commit($koneksi);
 
-            // Set session flag agar tidak melakukan update lagi
-            $_SESSION['status_diperbarui'] = true;
+//             // Set session flag agar tidak melakukan update lagi
+//             $_SESSION['status_diperbarui'] = true;
 
-            // Tampilkan pesan perubahan hanya jika status diperbarui
-            echo "<script>alert('Status pembayaran, pemesanan, dan tenggat uang muka telah diperbarui.');</script>";
+//             // Tampilkan pesan perubahan hanya jika status diperbarui
+//             echo "<script>alert('Status pembayaran, pemesanan, dan tenggat uang muka telah diperbarui.');</script>";
 
-        } catch (Exception $e) {
-            // Rollback jika terjadi kesalahan
-            mysqli_rollback($koneksi);
-            echo "<script>alert('Terjadi kesalahan saat memperbarui status: " . $e->getMessage() . "');</script>";
-        }
-    }
+//         } catch (Exception $e) {
+//             // Rollback jika terjadi kesalahan
+//             mysqli_rollback($koneksi);
+//             echo "<script>alert('Terjadi kesalahan saat memperbarui status: " . $e->getMessage() . "');</script>";
+//         }
+//     }
 
-} else {
-    // Jika sudah ada flag di session, status sudah diperbarui, tidak tampilkan pesan
-    // Anda bisa menambahkan kode lain di sini jika diperlukan
-}
+// } else {
+//     // Jika sudah ada flag di session, status sudah diperbarui, tidak tampilkan pesan
+//     // Anda bisa menambahkan kode lain di sini jika diperlukan
+// }
 
 
-// Validasi apakah tenggat waktu uang muka tersedia dan sudah terlewati
-if (isset($pemesanan['tenggat_uang_muka'])) {
-    // Cek jika status 'Menunggu Pembayaran' dan tenggat waktu baru sudah terlewati
-    if ($pemesanan['status'] === 'Menunggu Pembayaran' && strtotime($pemesanan['tenggat_uang_muka']) < $tanggalSekarang) {
-        // Pembatalan pemesanan
-        $updateStatusPemesanan = "UPDATE pemesanan SET status = 'Dibatalkan' WHERE id_pemesanan = ? AND status = 'Menunggu Pembayaran'";
-        $stmtUpdate = mysqli_prepare($koneksi, $updateStatusPemesanan);
-        mysqli_stmt_bind_param($stmtUpdate, 's', $idPemesanan);
+// // Validasi apakah tenggat waktu uang muka tersedia dan sudah terlewati
+// if (isset($pemesanan['tenggat_uang_muka'])) {
+//     // Cek jika status 'Menunggu Pembayaran' dan tenggat waktu baru sudah terlewati
+//     if ($pemesanan['status'] === 'Menunggu Pembayaran' && strtotime($pemesanan['tenggat_uang_muka']) < $tanggalSekarang) {
+//         // Pembatalan pemesanan
+//         $updateStatusPemesanan = "UPDATE pemesanan SET status = 'Dibatalkan' WHERE id_pemesanan = ? AND status = 'Menunggu Pembayaran'";
+//         $stmtUpdate = mysqli_prepare($koneksi, $updateStatusPemesanan);
+//         mysqli_stmt_bind_param($stmtUpdate, 's', $idPemesanan);
         
-        // Cek apakah pembatalan berhasil
-        if (mysqli_stmt_execute($stmtUpdate)) {
-            // Ubah status kamar menjadi 'Tersedia'
-            $updateStatusKamar = "UPDATE kamar SET status = 'Tersedia' WHERE idKamar = ? AND status = 'Booking'";
-            $stmtKamar = mysqli_prepare($koneksi, $updateStatusKamar);
-            mysqli_stmt_bind_param($stmtKamar, 's', $pemesanan['idKamar']);
+//         // Cek apakah pembatalan berhasil
+//         if (mysqli_stmt_execute($stmtUpdate)) {
+//             // Ubah status kamar menjadi 'Tersedia'
+//             $updateStatusKamar = "UPDATE kamar SET status = 'Tersedia' WHERE idKamar = ? AND status = 'Booking'";
+//             $stmtKamar = mysqli_prepare($koneksi, $updateStatusKamar);
+//             mysqli_stmt_bind_param($stmtKamar, 's', $pemesanan['idKamar']);
             
-            // Cek apakah pengubahan status kamar berhasil
-            if (mysqli_stmt_execute($stmtKamar)) {
-                echo "<script>
-                    alert('Tenggat waktu pembayaran terlewati. Pemesanan dibatalkan dan status kamar telah diubah menjadi Tersedia.');
-                    window.location.href='index.php';
-                </script>";
-                exit;
-            } else {
-                echo "Error mengubah status kamar: " . mysqli_error($koneksi);
-                exit;
-            }
-        } else {
-            echo "Error membatalkan pemesanan: " . mysqli_error($koneksi);
-            exit;
-        }
-    }
-}
+//             // Cek apakah pengubahan status kamar berhasil
+//             if (mysqli_stmt_execute($stmtKamar)) {
+//                 echo "<script>
+//                     alert('Tenggat waktu pembayaran terlewati. Pemesanan dibatalkan dan status kamar telah diubah menjadi Tersedia.');
+//                     window.location.href='index.php';
+//                 </script>";
+//                 exit;
+//             } else {
+//                 echo "Error mengubah status kamar: " . mysqli_error($koneksi);
+//                 exit;
+//             }
+//         } else {
+//             echo "Error membatalkan pemesanan: " . mysqli_error($koneksi);
+//             exit;
+//         }
+//     }
+// }
 
 
 

@@ -13,8 +13,8 @@ function formatRupiah($angka) {
             </div>
             <div class="panel-body">
                 <div class="table-responsive">
-                    <table class="table table-striped table-bordered table-hover" id="dataTables-example">
-                        <thead>
+                    <table class="table table-striped table-hover table-bordered text-center">
+                        <thead class="thead-dark">
                             <tr>
                                 <th>No</th>
                                 <th>Nama Fasilitas</th>
@@ -32,14 +32,20 @@ function formatRupiah($angka) {
                                 } else {
                                     while ($data = $sql->fetch_assoc()) {
                             ?>
-                                        <tr class="odd gradeX">
+                                        <tr>
                                             <td><?php echo $no++; ?></td>
-                                            <td><?php echo $data['namaFasilitas']; ?></td>
+                                            <td><?php echo htmlspecialchars($data['namaFasilitas']); ?></td>
                                             <td><?php echo formatRupiah($data['biayaTambahan']); ?></td>
                                             <td>
-                                                <a href="?page=fasilitas&aksi=ubah&idFasilitas=<?php echo $data['idFasilitas'];?>" class="btn btn-primary">Edit</a>
+                                                <a href="?page=fasilitas&aksi=edit&idFasilitas=<?php echo $data['idFasilitas']; ?>" 
+                                                   class="btn btn-primary btn-sm">
+                                                    <i class="fa fa-edit"></i> Edit
+                                                </a>
                                                 <a onclick="return confirm('Apakah Anda Yakin Akan Menghapus Data ini..?')" 
-                                                href="?page=fasilitas&aksi=hapus&idFasilitas=<?php echo $data['idFasilitas'];?>" class="btn btn-danger">Hapus</a>
+                                                   href="?page=fasilitas&aksi=hapus&idFasilitas=<?php echo $data['idFasilitas']; ?>" 
+                                                   class="btn btn-danger btn-sm">
+                                                    <i class="fa fa-trash"></i> Hapus
+                                                </a>
                                             </td>
                                         </tr>
                             <?php 
@@ -51,11 +57,11 @@ function formatRupiah($angka) {
                 </div>
 
                 <!-- Buttons for Adding and Exporting -->
-                <a href="?page=fasilitas&aksi=tambah" class="btn btn-primary" style="margin-bottom: 8px;">
+                <a href="?page=fasilitas&aksi=tambah" class="btn btn-success btn-sm" style="margin-bottom: 8px;">
                     <i class="fa fa-plus"></i> Tambah
                 </a>
-                
             </div>
         </div>
     </div>
 </div>
+

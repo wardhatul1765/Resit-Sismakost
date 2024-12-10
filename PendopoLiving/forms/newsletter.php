@@ -7,7 +7,7 @@
   */
 
   // Replace contact@example.com with your real receiving email address
-  $receiving_email_address = 'kakapatria22@gmail.com';
+  $receiving_email_address = 'kakapatria66@gmail.com';
 
   if( file_exists($php_email_form = '../assetss/vendor/php-email-form/php-email-form.php' )) {
     include( $php_email_form );
@@ -16,7 +16,7 @@
   }
 
   $contact = new PHP_Email_Form;
-  $contact->ajax = true;
+  // $contact->ajax = false;
   
   $contact->to = $receiving_email_address;
   $contact->from_name = $_POST['email'];
