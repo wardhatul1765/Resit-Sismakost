@@ -54,6 +54,28 @@ if (isset($_GET['action']) && $_GET['action'] === 'batalkan' && isset($_GET['idP
     }
 }
 
+if (isset($_GET['action']) && $_GET['action'] === 'keluar_kost') {
+    // Update status semua pesanan penyewa menjadi "Keluar"
+    $updateStatusPesanan = "UPDATE pemesanan 
+                             SET status = 'Keluar' 
+                             WHERE id_penyewa = '$idPenyewa' AND status NOT IN ('Dibatalkan', 'Keluar')";
+
+    // Update status kamar yang terkait menjadi "Tersedia"
+    $updateStatusKamar = "UPDATE kamar 
+                          SET status = 'Tersedia' 
+                          WHERE idKamar IN (
+                              SELECT idKamar 
+                              FROM pemesanan 
+                              WHERE id_penyewa = '$idPenyewa' AND status = 'Keluar'
+                          )";
+
+    if (mysqli_query($koneksi, $updateStatusPesanan) && mysqli_query($koneksi, $updateStatusKamar)) {
+        echo "<script>alert('Anda telah keluar dari kost. Semua pesanan telah diperbarui.'); window.location.href='pesananku.php';</script>";
+    } else {
+        echo "<script>alert('Gagal memperbarui status pesanan.'); window.location.href='pesananku.php';</script>";
+    }
+}
+
 // Proses upload bukti transfer
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unggah_bukti'])) {
 
@@ -120,10 +142,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unggah_bukti'])) {
 </head>
 <body>
 <div class="container mt-5">
-    <a href="index.php" class="btn btn-primary mb-4">
-            Kembali
-        </a>
-    <h2 class="text-center mb-4">Pesanan Anda</h2>
+    <div class="d-flex justify-content-between mb-4">
+            <a href="index.php" class="btn btn-primary">Kembali</a>
+            <button class="btn btn-danger" onclick="showConfirmModal()">Keluar Kost</button>
+    </div>
+     <h2 class="text-center mb-4">Pesanan Anda</h2>
     <table class="table table-striped">
         <thead>
             <tr>
@@ -174,49 +197,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unggah_bukti'])) {
                         <td>Rp. <?= number_format($sisaPembayaran, 0, ',', '.') ?></td>
                         <td><?= $status ?></td> <!-- Status Pembayaran -->
                         <td>
-                        <?php if ($status !== 'Dibatalkan'): ?>
-                        <?php if ($statusUangMuka === 'DP 30%' && $status === 'Menunggu Pembayaran'): ?>
-                            <a href="pembayaran.php?idPemesanan=<?= $idPemesanan; ?>&idPenyewa=<?= $idPenyewa; ?>" class="btn btn-success btn-sm">
-                                Bayar Pembayaran Awal
-                            </a>
-                        <?php elseif ($statusUangMuka === 'DP 30%' && $status === 'Menunggu Dikonfirmasi'): ?>
-                            <a href="javascript:void(0)" onclick="showPaymentModal(<?= $idPemesanan ?>)" class="btn btn-warning btn-sm">
-                                Bayar Sisa Pembayaran
-                            </a>
-                        <?php endif; ?>
-                        <?php if ($statusUangMuka === 'Bayar Penuh'): ?>
-                                <a href="pembayaran.php?idPemesanan=<?= $idPemesanan; ?>&idPenyewa=<?= $idPenyewa; ?>" class="btn btn-success btn-sm">
-                                    Bayar
-                                </a>
-                        <?php endif; ?>
-                        <?php if ($status === 'Menunggu Pembayaran'): ?>
-                            <a href="pesananku.php?action=batalkan&idPemesanan=<?= $idPemesanan; ?>" 
-                            class="btn btn-danger btn-sm" 
-                            onclick="return confirm('Apakah Anda yakin ingin membatalkan pesanan ini?');">
-                                Batalkan Pesanan
-                            </a>
-                        <?php else: ?>
-                            <span class="badge bg-secondary">Tidak Dapat Dibatalkan</span>
-                        <?php endif; ?>
-                        
-                        <!-- Aksi Perpanjang -->
-                        <?php
-                        $batasMenempatiKos = date_create($row['batas_menempati_kos']);
-                        $tanggalSekarang = date_create();
-                        $selisihHari = date_diff($tanggalSekarang, $batasMenempatiKos)->days;
+                            <?php if ($status !== 'Dibatalkan'): ?>
+                                <!-- Tombol Bayar Pembayaran Awal -->
+                                <?php if ($statusUangMuka === 'DP 30%' && $status === 'Menunggu Pembayaran'): ?>
+                                    <a href="pembayaran.php?idPemesanan=<?= $idPemesanan; ?>&idPenyewa=<?= $idPenyewa; ?>" class="btn btn-success btn-sm">
+                                        Bayar Pembayaran Awal
+                                    </a>
+                                <?php elseif ($statusUangMuka === 'DP 30%' && $status === 'Menunggu Dikonfirmasi'): ?>
+                                    <!-- Tombol Bayar Sisa Pembayaran -->
+                                    <a href="javascript:void(0)" onclick="showPaymentModal(<?= $idPemesanan ?>)" class="btn btn-warning btn-sm">
+                                        Bayar Sisa Pembayaran
+                                    </a>
+                                <?php elseif ($statusUangMuka === 'Bayar Penuh' && $status === 'Menunggu Pembayaran'): ?>
+                                    <!-- Tombol Bayar jika status uang muka Bayar Penuh -->
+                                    <a href="javascript:void(0)" onclick="showPaymentModal(<?= $idPemesanan ?>)" class="btn btn-primary btn-sm">
+                                        Bayar
+                                    </a>
+                                <?php endif; ?>
 
-                        if ($selisihHari <= 7) {  // Jika 7 hari sebelum batas menempati kos
-                            ?>
-                            <a href="perpanjangan.php?idPemesanan=<?= $idPemesanan; ?>" class="btn btn-info btn-sm">
-                                Perpanjang Sewa
-                            </a>
-                            <?php
-                        }
-                        ?>
-                    <?php else: ?>
-                        <span class="badge bg-danger">Dibatalkan</span>
-                    <?php endif; ?>
-                    </td>
+                                <!-- Tombol Batalkan Pesanan -->
+                                <?php if ($status === 'Menunggu Pembayaran'): ?>
+                                    <a href="pesananku.php?action=batalkan&idPemesanan=<?= $idPemesanan; ?>" 
+                                    class="btn btn-danger btn-sm" 
+                                    onclick="return confirm('Apakah Anda yakin ingin membatalkan pesanan ini?');">
+                                        Batalkan Pesanan
+                                    </a>
+                                <?php else: ?>
+                                    <span class="badge bg-secondary">Tidak Dapat Dibatalkan</span>
+                                <?php endif; ?>
+                                
+                                <!-- Tombol Perpanjang Sewa -->
+                                <?php
+                                $batasMenempatiKos = date_create($row['batas_menempati_kos']);
+                                $tanggalSekarang = date_create();
+                                $selisihHari = date_diff($tanggalSekarang, $batasMenempatiKos)->days;
+
+                                if ($selisihHari <= 7): // Jika 7 hari sebelum batas menempati kos
+                                ?>
+                                    <a href="perpanjangan.php?idPemesanan=<?= $idPemesanan; ?>" class="btn btn-info btn-sm">
+                                        Perpanjang Sewa
+                                    </a>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                <span class="badge bg-danger">Dibatalkan</span>
+                            <?php endif; ?>
+                        </td>
                     </tr>
                     <?php
                 }
@@ -226,6 +251,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unggah_bukti'])) {
             ?>
         </tbody>
     </table>
+</div>
+
+<!-- Modal Konfirmasi Keluar Kost -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">Konfirmasi Keluar Kost</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Anda yakin ingin keluar dari kost? Anda tidak dapat menempati kamar sewa jika Anda keluar dari Kost.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <a href="pesananku.php?action=keluar_kost" id="confirmButton" class="btn btn-danger" disabled>Konfirmasi</a>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Modal Pembayaran -->
@@ -262,55 +306,92 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unggah_bukti'])) {
 <div id="overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 999;"></div>
 
 <script>
-let currentIdPemesanan = null;
+    let currentIdPemesanan = null;
 
-function showPaymentModal(idPemesanan) {
-    currentIdPemesanan = idPemesanan;
-    const paymentModal = new bootstrap.Modal(document.getElementById('paymentModal'));
-    paymentModal.show();
-}
-
-function showPaymentInstructions(event) {
-    event.preventDefault(); // Mencegah reload halaman
-    const metode = document.getElementById('pembayaran').value;
-    const instructionsDiv = document.getElementById('paymentInstructions');
-    
-    let instructions = '';
-    if (metode === 'QRIS') {
-        instructions = `
-            <div class="text-center">
-                <h5>Silakan scan QRIS di bawah ini untuk melakukan pembayaran</h5>
-                <img src='img/qris.jpeg' alt='QRIS Code' class="img-fluid mt-3" style="max-width:200px;">
-            </div>
-        `;
-    } else if (metode === 'Bank Transfer') {
-        instructions = `
-            <div>
-                <h5>Silakan transfer ke rekening berikut:</h5>
-                <p>
-                    <strong>Bank:</strong> Bank ABC<br>
-                    <strong>Nomor Rekening:</strong> 1234567890<br>
-                    <strong>Atas Nama:</strong> Kos XYZ
-                </p>
-            </div>
-        `;
+    function showPaymentModal(idPemesanan) {
+        currentIdPemesanan = idPemesanan;
+        const paymentModal = new bootstrap.Modal(document.getElementById('paymentModal'));
+        paymentModal.show();
     }
 
-    instructions += `
-        <form action="pesananku.php" method="post" enctype="multipart/form-data" class="mt-3">
-            <div class="mb-3">
-                <label for="bukti_transfer" class="form-label">Unggah Bukti Transfer:</label>
-                <input type="file" name="bukti_transfer" id="bukti_transfer" class="form-control" required>
-                <input type="hidden" name="metode_pembayaran" value="${metode}">
-                <input type="hidden" name="idPemesanan" value="${currentIdPemesanan}">
-                <input type="hidden" name="idPembayaran" value="<?= $idPembayaran; ?>">
-            </div>
-            <button type="submit" name="unggah_bukti" class="btn btn-success w-100">Unggah Bukti</button>
-        </form>
-    `;
-    
-    instructionsDiv.innerHTML = instructions;
-}
+    function showPaymentInstructions(event) {
+        event.preventDefault(); // Mencegah reload halaman
+        const metode = document.getElementById('pembayaran').value;
+        const instructionsDiv = document.getElementById('paymentInstructions');
+        
+        let instructions = '';
+        if (metode === 'QRIS') {
+            instructions = `
+                <div class="text-center">
+                    <h5>Silakan scan QRIS di bawah ini untuk melakukan pembayaran</h5>
+                    <img src='img/qris.jpeg' alt='QRIS Code' class="img-fluid mt-3" style="max-width:200px;">
+                </div>
+            `;
+        } else if (metode === 'Bank Transfer') {
+            instructions = `
+                <div>
+                    <h5>Silakan transfer ke rekening berikut:</h5>
+                    <p>
+                        <strong>Bank:</strong> Bank ABC<br>
+                        <strong>Nomor Rekening:</strong> 1234567890<br>
+                        <strong>Atas Nama:</strong> Kos XYZ
+                    </p>
+                </div>
+            `;
+        }
+
+        instructions += `
+            <form action="pesananku.php" method="post" enctype="multipart/form-data" class="mt-3">
+                <div class="mb-3">
+                    <label for="bukti_transfer" class="form-label">Unggah Bukti Transfer:</label>
+                    <input type="file" name="bukti_transfer" id="bukti_transfer" class="form-control" required>
+                    <input type="hidden" name="metode_pembayaran" value="${metode}">
+                    <input type="hidden" name="idPemesanan" value="${currentIdPemesanan}">
+                    <input type="hidden" name="idPembayaran" value="<?= $idPembayaran; ?>">
+                </div>
+                <button type="submit" name="unggah_bukti" class="btn btn-success w-100">Unggah Bukti</button>
+            </form>
+        `;
+        
+        instructionsDiv.innerHTML = instructions;
+    }
+
+    // konfirmasi
+    function showConfirmModal() {
+            const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+            confirmModal.show();
+    }
+
+    function showConfirmModal() {
+        const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+        confirmModal.show();
+
+        // tombol konfirmasi
+        const confirmButton = document.querySelector('#confirmModal .btn-danger');
+        confirmButton.disabled = true; 
+        confirmButton.style.backgroundColor = "#d6d6d6";
+        confirmButton.style.cursor = "not-allowed"; 
+        confirmButton.setAttribute("onclick", "return false;"); 
+
+        let countdown = 5; // waktu hitung mundur 5 detik
+        confirmButton.textContent = `Konfirmasi (${countdown})`; 
+
+        const interval = setInterval(() => {
+            countdown--;
+            confirmButton.textContent = `Konfirmasi (${countdown})`; 
+
+            if (countdown <= 0) {
+                clearInterval(interval);
+                confirmButton.disabled = false; 
+                confirmButton.style.backgroundColor = ""; 
+                confirmButton.style.cursor = ""; 
+                confirmButton.textContent = "Konfirmasi";
+                confirmButton.removeAttribute("onclick");
+            }
+        }, 1000);
+    }
+
+
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
