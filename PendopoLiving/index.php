@@ -140,7 +140,7 @@ $total_mandi_luar = $data_mandi_luar['total_kamar'];
 
           <div class="col-lg-6 content" data-aos="fade-up" data-aos-delay="100">
             <p>
-            Website aplikasi kost adalah platform online yang memudahkan Anda menemukan tempat tinggal yang nyaman dan sesuai dengan kebutuhan. Temukan berbagai pilihan kost dengan mudah dan cepat melalui fitur-fitur menarik yang kami sediakan.
+            Website Elisa Kost adalah platform online yang memudahkan Anda menemukan tempat tinggal yang nyaman dan sesuai dengan kebutuhan. Temukan berbagai pilihan kost dengan mudah dan cepat melalui fitur-fitur menarik yang kami sediakan.
             </p>
             <ul>
             </ul>

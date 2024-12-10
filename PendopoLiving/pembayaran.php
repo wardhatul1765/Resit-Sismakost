@@ -321,6 +321,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pilih_metode'])) {
 </head>
 <body>
     <div class="payment-container">
+    <button onclick="goBack()" class="btn btn-primary btn-rounded">Kembali</button>
         <h2>Konfirmasi Pembayaran</h2>
         <div class="payment-summary mb-4">
             <p><strong>Kamar:</strong> <?= htmlspecialchars($pemesanan['namaKamar']) ?></p>
@@ -394,6 +395,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pilih_metode'])) {
                 fileUploadSection.style.display = 'none';
             }
         });
+        function goBack() {
+            window.history.back();
+        }   
     </script>
 </body>
 </html>

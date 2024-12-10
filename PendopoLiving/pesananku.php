@@ -12,22 +12,46 @@ $idPenyewa = $_SESSION['idPenyewa'];
 
 // Query untuk mendapatkan daftar pesanan penyewa
 $sql = "SELECT p.id_pemesanan, p.pemesanan_kamar, p.uang_muka, p.sisa_pembayaran, p.status, p.status_uang_muka, 
-                p.tenggat_uang_muka, p.mulai_menempati_kos, p.batas_menempati_kos, k.namaKamar, b.namaBlok, pm.idPembayaran 
-            FROM 
-            pemesanan p
-            JOIN 
-            kamar k ON p.idKamar = k.idKamar
-            JOIN 
-            blok b ON k.idBlok = b.idBlok
-            LEFT JOIN 
-            pembayaran pm ON pm.id_pemesanan = p.id_pemesanan
-            WHERE 
-            p.id_penyewa = '$idPenyewa'";
+               p.tenggat_uang_muka, p.mulai_menempati_kos, p.batas_menempati_kos, k.namaKamar, b.namaBlok, pm.idPembayaran 
+        FROM pemesanan p
+        JOIN kamar k ON p.idKamar = k.idKamar
+        JOIN blok b ON k.idBlok = b.idBlok
+        LEFT JOIN pembayaran pm ON pm.id_pemesanan = p.id_pemesanan
+        WHERE p.id_penyewa = '$idPenyewa' AND p.is_hidden = FALSE";
 
 $result = mysqli_query($koneksi, $sql);
 
 if (!$result) {
     die("Query gagal: " . mysqli_error($koneksi));
+}
+
+if (isset($_GET['action']) && $_GET['action'] === 'batalkan' && isset($_GET['idPemesanan'])) {
+    $idPemesanan = $_GET['idPemesanan'];
+
+    // Cek apakah status pesanan adalah "Menunggu Pembayaran"
+    $cekStatus = "SELECT status FROM pemesanan WHERE id_pemesanan = '$idPemesanan' AND id_penyewa = '$idPenyewa'";
+    $resultCek = mysqli_query($koneksi, $cekStatus);
+    $rowStatus = mysqli_fetch_assoc($resultCek);
+
+    if ($rowStatus && $rowStatus['status'] === 'Menunggu Pembayaran') {
+        // Update status pesanan menjadi "Dibatalkan"
+        $queryBatalkan = "UPDATE pemesanan 
+                          SET status = 'Dibatalkan', is_hidden = TRUE 
+                          WHERE id_pemesanan = '$idPemesanan' AND id_penyewa = '$idPenyewa'";
+
+        // Update status kamar menjadi 'Tersedia'
+        $updateKamarStatus = "UPDATE kamar 
+                              SET status = 'Tersedia' 
+                              WHERE idKamar = (SELECT idKamar FROM pemesanan WHERE id_pemesanan = '$idPemesanan' AND id_penyewa = '$idPenyewa')";
+
+        if (mysqli_query($koneksi, $queryBatalkan) && mysqli_query($koneksi, $updateKamarStatus)) {
+            echo "<script>alert('Pesanan berhasil dibatalkan. Status kamar diubah menjadi Tersedia.'); window.location.href='pesananku.php';</script>";
+        } else {
+            echo "<script>alert('Gagal membatalkan pesanan'); window.location.href='pesananku.php';</script>";
+        }
+    } else {
+        echo "<script>alert('Pesanan tidak dapat dibatalkan.'); window.location.href='pesananku.php';</script>";
+    }
 }
 
 // Proses upload bukti transfer
@@ -151,28 +175,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unggah_bukti'])) {
                         <td><?= $status ?></td> <!-- Status Pembayaran -->
                         <td>
                         <?php if ($status !== 'Dibatalkan'): ?>
-                            <!-- Tombol untuk pembayaran awal jika status uang muka 'DP 30%' dan status pemesanan 'Menunggu Pembayaran' -->
-                            <?php if ($statusUangMuka === 'DP 30%' && $status === 'Menunggu Pembayaran'): ?>
-                                <a href="pembayaran.php?idPemesanan=<?= $idPemesanan; ?>&idPenyewa=<?= $idPenyewa; ?>" class="btn btn-success btn-sm">
-                                    Bayar Pembayaran Awal
-                                </a>
-                            <?php endif; ?>
-
-                           <!-- Jika status uang muka 'DP 30%' dan status pemesanan 'Menunggu Dikonfirmasi', tampilkan tombol 'Bayar Sisa Pembayaran' -->
-                            <?php if ($statusUangMuka === 'DP 30%' && $status === 'Menunggu Dikonfirmasi'): ?>
-                                <a href="javascript:void(0)" onclick="showPaymentModal(<?= $idPemesanan ?>)" class="btn btn-warning btn-sm">
-                                    Bayar Sisa Pembayaran
-                                </a>
-                            <?php endif; ?>
-                            <?php if ($statusUangMuka === 'Bayar Penuh'): ?>
+                        <?php if ($statusUangMuka === 'DP 30%' && $status === 'Menunggu Pembayaran'): ?>
+                            <a href="pembayaran.php?idPemesanan=<?= $idPemesanan; ?>&idPenyewa=<?= $idPenyewa; ?>" class="btn btn-success btn-sm">
+                                Bayar Pembayaran Awal
+                            </a>
+                        <?php elseif ($statusUangMuka === 'DP 30%' && $status === 'Menunggu Dikonfirmasi'): ?>
+                            <a href="javascript:void(0)" onclick="showPaymentModal(<?= $idPemesanan ?>)" class="btn btn-warning btn-sm">
+                                Bayar Sisa Pembayaran
+                            </a>
+                        <?php endif; ?>
+                        <?php if ($statusUangMuka === 'Bayar Penuh'): ?>
                                 <a href="pembayaran.php?idPemesanan=<?= $idPemesanan; ?>&idPenyewa=<?= $idPenyewa; ?>" class="btn btn-success btn-sm">
                                     Bayar
                                 </a>
-                            <?php endif; ?>
-                        <?php else: ?>
-                            <!-- Jika status "Dibatalkan", tidak ada aksi -->
-                            <span class="badge bg-danger">Dibatalkan</span>
                         <?php endif; ?>
+                        <?php if ($status === 'Menunggu Pembayaran'): ?>
+                            <a href="pesananku.php?action=batalkan&idPemesanan=<?= $idPemesanan; ?>" 
+                            class="btn btn-danger btn-sm" 
+                            onclick="return confirm('Apakah Anda yakin ingin membatalkan pesanan ini?');">
+                                Batalkan Pesanan
+                            </a>
+                        <?php else: ?>
+                            <span class="badge bg-secondary">Tidak Dapat Dibatalkan</span>
+                        <?php endif; ?>
+                        
+                        <!-- Aksi Perpanjang -->
+                        <?php
+                        $batasMenempatiKos = date_create($row['batas_menempati_kos']);
+                        $tanggalSekarang = date_create();
+                        $selisihHari = date_diff($tanggalSekarang, $batasMenempatiKos)->days;
+
+                        if ($selisihHari <= 7) {  // Jika 7 hari sebelum batas menempati kos
+                            ?>
+                            <a href="perpanjangan.php?idPemesanan=<?= $idPemesanan; ?>" class="btn btn-info btn-sm">
+                                Perpanjang Sewa
+                            </a>
+                            <?php
+                        }
+                        ?>
+                    <?php else: ?>
+                        <span class="badge bg-danger">Dibatalkan</span>
+                    <?php endif; ?>
                     </td>
                     </tr>
                     <?php
