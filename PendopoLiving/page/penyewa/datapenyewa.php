@@ -20,7 +20,7 @@ function formatRupiah($angka) {
                                 <th>Nama Penyewa</th>
                                 <th>No Telepon</th>
                                 <th>Email</th>
-                                <th>Kamar</th>
+                                <!-- <th>Kamar</th> -->
                                 <th>Foto Jaminan</th>
                                 <th>Aksi</th>
                             </tr>
@@ -47,7 +47,6 @@ function formatRupiah($angka) {
                                             <td><?php echo htmlspecialchars($data['namaPenyewa']); ?></td>
                                             <td><?php echo htmlspecialchars($data['noTelepon']); ?></td>
                                             <td><?php echo htmlspecialchars($data['email']); ?></td>
-                                            <td><?php echo htmlspecialchars($namaKamar); ?></td>
                                             <td>
                                                 <?php if ($fotoJaminan): ?>
                                                     <!-- Gambar kecil dapat diklik untuk melihat lebih besar -->

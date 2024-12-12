@@ -11,7 +11,7 @@ if (!isset($_SESSION['idPenyewa'])) {
 $idPenyewa = $_SESSION['idPenyewa'];
 
 // Query untuk mendapatkan daftar pesanan penyewa
-$sql = "SELECT p.id_pemesanan, p.pemesanan_kamar, p.uang_muka, p.sisa_pembayaran, p.status, p.status_uang_muka, 
+$sql = "SELECT p.id_pemesanan, p.pemesanan_kamar, p.uang_muka, p.sisa_pembayaran, p.status, p.status_uang_muka, p.bukti_transfer,
                p.tenggat_uang_muka, p.mulai_menempati_kos, p.batas_menempati_kos, k.namaKamar, b.namaBlok, pm.idPembayaran 
         FROM pemesanan p
         JOIN kamar k ON p.idKamar = k.idKamar
@@ -54,27 +54,58 @@ if (isset($_GET['action']) && $_GET['action'] === 'batalkan' && isset($_GET['idP
     }
 }
 
-if (isset($_GET['action']) && $_GET['action'] === 'keluar_kost') {
-    // Update status semua pesanan penyewa menjadi "Keluar"
-    $updateStatusPesanan = "UPDATE pemesanan 
-                             SET status = 'Keluar' 
-                             WHERE id_penyewa = '$idPenyewa' AND status NOT IN ('Dibatalkan', 'Keluar')";
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $idPenyewa = $_POST['idPenyewa'];
+    $subject = $_POST['subject'];
+    $message = $_POST['message'];
 
-    // Update status kamar yang terkait menjadi "Tersedia"
-    $updateStatusKamar = "UPDATE kamar 
-                          SET status = 'Tersedia' 
-                          WHERE idKamar IN (
-                              SELECT idKamar 
-                              FROM pemesanan 
-                              WHERE id_penyewa = '$idPenyewa' AND status = 'Keluar'
-                          )";
+    // Validasi apakah pengguna memiliki pemesanan aktif
+    $queryCheck = "SELECT id_pemesanan FROM pemesanan WHERE id_penyewa = ? AND status = 'Dikonfirmasi'";
+    $stmtCheck = $koneksi->prepare($queryCheck);
+    $stmtCheck->bind_param("i", $idPenyewa);
+    $stmtCheck->execute();
+    $resultCheck = $stmtCheck->get_result();
 
-    if (mysqli_query($koneksi, $updateStatusPesanan) && mysqli_query($koneksi, $updateStatusKamar)) {
-        echo "<script>alert('Anda telah keluar dari kost. Semua pesanan telah diperbarui.'); window.location.href='pesananku.php';</script>";
+    if ($resultCheck->num_rows > 0) {
+        // Jika ada id_pemesanan dengan status Aktif, lanjutkan dengan insert ke tabel pesan
+        $queryInsert = "INSERT INTO pesan (idPenyewa, subject, message) VALUES (?, ?, ?)";
+        $stmtInsert = $koneksi->prepare($queryInsert);
+        $stmtInsert->bind_param("iss", $idPenyewa, $subject, $message);
+
+        if ($stmtInsert->execute()) {
+            echo "<script>alert('Pengajuan berhasil dikirim. Harap tunggu konfirmasi admin.');</script>";
+            echo "<script>window.location.href = 'pesananku.php';</script>";
+        } else {
+            echo "<script>alert('Gagal mengirim alasan. Coba lagi nanti.');</script>";
+        }
     } else {
-        echo "<script>alert('Gagal memperbarui status pesanan.'); window.location.href='pesananku.php';</script>";
+        // Jika tidak memiliki pemesanan aktif
+        echo "<script>alert('Anda tidak memiliki pemesanan aktif untuk keluar dari kost.');</script>";
+        echo "<script>history.back();</script>";
     }
 }
+
+// if (isset($_GET['action']) && $_GET['action'] === 'keluar_kost') {
+//     // Update status semua pesanan penyewa menjadi "Keluar"
+//     $updateStatusPesanan = "UPDATE pemesanan 
+//                              SET status = 'Keluar' 
+//                              WHERE id_penyewa = '$idPenyewa' AND status NOT IN ('Dibatalkan', 'Keluar')";
+
+//     // Update status kamar yang terkait menjadi "Tersedia"
+//     $updateStatusKamar = "UPDATE kamar 
+//                           SET status = 'Tersedia' 
+//                           WHERE idKamar IN (
+//                               SELECT idKamar 
+//                               FROM pemesanan 
+//                               WHERE id_penyewa = '$idPenyewa' AND status = 'Keluar'
+//                           )";
+
+//     if (mysqli_query($koneksi, $updateStatusPesanan) && mysqli_query($koneksi, $updateStatusKamar)) {
+//         echo "<script>alert('Anda telah keluar dari kost. Semua pesanan telah diperbarui.'); window.location.href='pesananku.php';</script>";
+//     } else {
+//         echo "<script>alert('Gagal memperbarui status pesanan.'); window.location.href='pesananku.php';</script>";
+//     }
+// }
 
 // Proses upload bukti transfer
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unggah_bukti'])) {
@@ -139,22 +170,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unggah_bukti'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daftar Pesanan</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
 <div class="container mt-5">
     <div class="d-flex justify-content-between mb-4">
-            <a href="index.php" class="btn btn-primary">Kembali</a>
-            <button class="btn btn-danger" onclick="showConfirmModal()">Keluar Kost</button>
+        <a href="index.php" class="btn btn-primary">Kembali</a>
+        <button class="btn btn-danger" onclick="showConfirmModal()">Keluar Kost</button>
     </div>
-     <h2 class="text-center mb-4">Pesanan Anda</h2>
-    <table class="table table-striped">
-        <thead>
+
+    <h2 class="text-center mb-4">Pesanan Anda</h2>
+
+    <table class="table table-striped table-bordered">
+        <thead class="table-dark">
             <tr>
                 <th>No</th>
+                <th>ID Pemesanan</th>
                 <th>Tanggal Pemesanan</th>
                 <th>Kamar</th>
                 <th>Blok</th>
-                <th>Durasi</th>
+                <th>Durasi Sewa</th>
+                <th>Mulai Menempati Kos</th>
+                <th>Batas Menempati Kos</th>
                 <th>Uang Muka</th>
                 <th>Status Uang Muka</th>
                 <th>Tenggat Uang Muka</th>
@@ -175,66 +212,68 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unggah_bukti'])) {
                     $namaKamar = $row['namaKamar'];
                     $namaBlok = $row['namaBlok'];
                     $durasi = date_diff(date_create($row['mulai_menempati_kos']), date_create($row['batas_menempati_kos']))->m;
+                    $MulaiMenempatiKos = $row['mulai_menempati_kos'];
+                    $batasMenempatiKos = $row['batas_menempati_kos'];
                     $uangMuka = $row['uang_muka'];
+                    $buktiTransfer = $row['bukti_transfer'];
                     $statusUangMuka = $row['status_uang_muka'];  // Menampilkan status uang muka
                     $tenggatUangMuka = $row['tenggat_uang_muka'];
-                    $uangMuka = $row['uang_muka'];
                     $sisaPembayaran = $row['sisa_pembayaran'];
                     $status = $row['status'];  // Menampilkan status pemesanan
                     ?>
                     <tr>
                         <td><?= $no++ ?></td>
+                        <td><?= $idPemesanan ?></td>
                         <td><?= $tanggalPemesanan ?></td>
                         <td><?= $namaKamar ?></td>
                         <td><?= $namaBlok ?></td>
                         <td><?= $durasi ?> Bulan</td>
+                        <td><?= $MulaiMenempatiKos ?></td>
+                        <td><?= $batasMenempatiKos ?></td>
                         <td>Rp. <?= number_format($uangMuka, 0, ',', '.') ?></td>
-                        <td><?= $statusUangMuka ?></td> <!-- Status Uang Muka -->
+                        <td><?= $statusUangMuka ?></td>
                         <td>
                             <?= $status === 'Menunggu Pembayaran' && $tenggatUangMuka ? $tenggatUangMuka : '-' ?>
                         </td>
                         <td>Rp. <?= number_format($uangMuka + $sisaPembayaran, 0, ',', '.') ?></td>
                         <td>Rp. <?= number_format($sisaPembayaran, 0, ',', '.') ?></td>
-                        <td><?= $status ?></td> <!-- Status Pembayaran -->
+                        <td><?= $status ?></td>
                         <td>
                             <?php if ($status !== 'Dibatalkan'): ?>
                                 <!-- Tombol Bayar Pembayaran Awal -->
-                                <?php if ($statusUangMuka === 'DP 30%' && $status === 'Menunggu Pembayaran'): ?>
+                                <?php if ($statusUangMuka === 'DP 30%' && $status === 'Menunggu Pembayaran' && empty($row['bukti_transfer'])): ?>
                                     <a href="pembayaran.php?idPemesanan=<?= $idPemesanan; ?>&idPenyewa=<?= $idPenyewa; ?>" class="btn btn-success btn-sm">
-                                        Bayar Pembayaran Awal
+                                        Bayar DP30% Awal
                                     </a>
                                 <?php elseif ($statusUangMuka === 'DP 30%' && $status === 'Menunggu Dikonfirmasi'): ?>
                                     <!-- Tombol Bayar Sisa Pembayaran -->
                                     <a href="javascript:void(0)" onclick="showPaymentModal(<?= $idPemesanan ?>)" class="btn btn-warning btn-sm">
                                         Bayar Sisa Pembayaran
                                     </a>
-                                <?php elseif ($statusUangMuka === 'Bayar Penuh' && $status === 'Menunggu Pembayaran'): ?>
-                                    <!-- Tombol Bayar jika status uang muka Bayar Penuh -->
-                                    <a href="javascript:void(0)" onclick="showPaymentModal(<?= $idPemesanan ?>)" class="btn btn-primary btn-sm">
+                                <?php elseif ($statusUangMuka === 'Bayar Penuh' && $status === 'Menunggu Pembayaran' && empty($row['bukti_transfer'])): ?>
+                                    <!-- Tombol Bayar hanya untuk pembayaran awal -->
+                                    <a href="pembayaran.php?idPemesanan=<?= $idPemesanan; ?>&idPenyewa=<?= $idPenyewa; ?>" class="btn btn-success btn-sm">
                                         Bayar
                                     </a>
                                 <?php endif; ?>
 
                                 <!-- Tombol Batalkan Pesanan -->
-                                <?php if ($status === 'Menunggu Pembayaran'): ?>
+                                <?php if ($status === 'Menunggu Pembayaran' && empty($row['bukti_transfer'])): ?>
                                     <a href="pesananku.php?action=batalkan&idPemesanan=<?= $idPemesanan; ?>" 
-                                    class="btn btn-danger btn-sm" 
-                                    onclick="return confirm('Apakah Anda yakin ingin membatalkan pesanan ini?');">
+                                       class="btn btn-danger btn-sm" 
+                                       onclick="return confirm('Apakah Anda yakin ingin membatalkan pesanan ini?');">
                                         Batalkan Pesanan
                                     </a>
-                                <?php else: ?>
-                                    <span class="badge bg-secondary">Tidak Dapat Dibatalkan</span>
                                 <?php endif; ?>
-                                
+
                                 <!-- Tombol Perpanjang Sewa -->
                                 <?php
-                                $batasMenempatiKos = date_create($row['batas_menempati_kos']);
-                                $tanggalSekarang = date_create();
-                                $selisihHari = date_diff($tanggalSekarang, $batasMenempatiKos)->days;
+                                    $batasMenempatiKos = strtotime($row['batas_menempati_kos']); // Ubah batas menempati kos ke timestamp
+                                    $tanggalSekarang = time(); // Timestamp saat ini
 
-                                if ($selisihHari <= 7): // Jika 7 hari sebelum batas menempati kos
+                                    if ($batasMenempatiKos <= $tanggalSekarang): // Jika batas menempati kos sudah lewat atau sama dengan tanggal sekarang
                                 ?>
-                                    <a href="perpanjangan.php?idPemesanan=<?= $idPemesanan; ?>" class="btn btn-info btn-sm">
+                                    <a href="perpanjangan.php?idPemesanan=<?= $idPemesanan; ?>&idPembayaran=<?= $idPembayaran; ?>&idPenyewa=<?= $idPenyewa; ?>" class="btn btn-info btn-sm">
                                         Perpanjang Sewa
                                     </a>
                                 <?php endif; ?>
@@ -246,15 +285,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unggah_bukti'])) {
                     <?php
                 }
             } else {
-                echo "<tr><td colspan='9' class='text-center'>Tidak ada pesanan.</td></tr>";
+                echo "<tr><td colspan='14' class='text-center'>Tidak ada pesanan.</td></tr>";
             }
             ?>
         </tbody>
     </table>
 </div>
 
-<!-- Modal Konfirmasi Keluar Kost -->
-<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <!-- Modal Konfirmasi Keluar Kost -->
+    <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmModalLabel">Konfirmasi Keluar Kost</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="" id="keluarKostForm">
+                    <div class="modal-body">
+                        <p>Anda yakin ingin keluar dari kost? Anda tidak dapat menempati kamar sewa jika Anda keluar dari Kost.</p>
+                        <div class="mb-3">
+                            <label for="message" class="form-label">Pengajuan Keluar Kost</label>
+                            <textarea name="message" id="message" class="form-control" rows="3" placeholder="Tulis alasan Anda di sini" required></textarea>
+                        </div>
+                        <input type="hidden" name="idPenyewa" value="<?php echo $_SESSION['idPenyewa']; ?>"> <!-- Ambil dari sesi -->
+                        <input type="hidden" name="subject" value="Keluar Kost">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" id="confirmButton" class="btn btn-danger">Konfirmasi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+<!-- <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
@@ -270,7 +335,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unggah_bukti'])) {
             </div>
         </div>
     </div>
-</div>
+</div> -->
 
 <!-- Modal Pembayaran -->
 <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">

@@ -36,13 +36,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $idPenyewa = isset($_SESSION['idPenyewa']) ? $_SESSION['idPenyewa'] : null;
 
 // Cek apakah penyewa sudah memiliki pemesanan aktif
-// $sqlCekPemesanan = "SELECT * FROM pemesanan WHERE id_penyewa = '$idPenyewa' AND (status = 'Menunggu Pembayaran' OR status = 'Booking')";
+// $sqlCekPemesanan = "SELECT * FROM pemesanan WHERE id_penyewa = '$idPenyewa' AND status IN ('Menunggu Pembayaran', 'Menunggu Dikonfirmasi', 'Dikonfirmasi')";
 // $resultCekPemesanan = mysqli_query($koneksi, $sqlCekPemesanan);
+
 // if (mysqli_num_rows($resultCekPemesanan) > 0) {
 //     echo "<script>alert('Anda sudah memiliki pemesanan aktif. Anda tidak dapat melakukan pemesanan lagi.');</script>";
 //     echo "<script>window.location.href='index.php';</script>";
 //     exit;
 // }
+
 
 // Query untuk mendapatkan informasi kamar
 $sql = "SELECT k.idKamar, k.namaKamar, k.harga, b.namaBlok, f.namaFasilitas, f.biayaTambahan, k.status
@@ -67,9 +69,13 @@ $statusKamar = $row['status'];
 
 // Cek apakah kamar sudah dalam status "Booking"
 if ($statusKamar == 'Booking') {
-    echo "<script>alert('Kamar ini sudah dipesan oleh orang lain.'); window.location.href='index.php';</script>";
+    echo "<script>alert('Kamar ini sudah dipesan oleh orang lain. Silakan pilih kamar lain yang masih tersedia.'); window.location.href='index.php';</script>";
+    exit;
+} elseif ($statusKamar == 'Kosong') {
+    echo "<script>alert('Kamar ini sedang tidak tersedia untuk pemesanan. Mohon pilih kamar lain.'); window.location.href='index.php';</script>";
     exit;
 }
+
 
 // Biaya tambahan untuk listrik
 $biayaListrik = 15000 * $bringElectronics;

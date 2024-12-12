@@ -8,14 +8,14 @@ $searchTerm = isset($_GET['search']) ? "%" . $_GET['search'] . "%" : null;
 if ($searchTerm === null) {
     $query = "SELECT id_pemesanan, id_penyewa, idKamar, pemesanan_kamar, uang_muka, status_uang_muka, bukti_transfer, status
               FROM pemesanan
-              WHERE status = 'Menunggu Dikonfirmasi'
+              WHERE status IN ('Menunggu Dikonfirmasi', 'Perpanjangan')
               LIMIT 5";
     $stmt = $koneksi->prepare($query);
 } else {
     // Query untuk pencarian (cari di semua data)
     $query = "SELECT id_pemesanan, id_penyewa, idKamar, pemesanan_kamar, uang_muka, status_uang_muka, bukti_transfer, status
               FROM pemesanan
-              WHERE status = 'Menunggu Dikonfirmasi'
+              WHERE status IN ('Menunggu Dikonfirmasi', 'Perpanjangan')
               AND (id_pemesanan LIKE ? OR id_penyewa LIKE ? OR idKamar LIKE ?)";
     $stmt = $koneksi->prepare($query);
     $stmt->bind_param("sss", $searchTerm, $searchTerm, $searchTerm);

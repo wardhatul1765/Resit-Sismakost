@@ -17,12 +17,14 @@ function formatRupiah($angka) {
                         <thead class="thead-dark">
                             <tr>
                                 <th>No</th>
+                                <th>ID Pembayaran</th>
                                 <th>Tanggal Pembayaran</th>
                                 <th>Batas Pembayaran</th>
                                 <th>Durasi Sewa</th>
                                 <th>Status Pembayaran</th>
                                 <th>ID Penyewa</th>
                                 <th>Jatuh Tempo</th>
+                                <th>ID Pemesanan</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
@@ -38,6 +40,7 @@ function formatRupiah($angka) {
                             ?>
                                         <tr>
                                             <td><?php echo $no++; ?></td>
+                                            <td><?php echo htmlspecialchars($data['idPembayaran']); ?></td>
                                             <td><?php echo htmlspecialchars($data['tanggalPembayaran']); ?></td>
                                             <td><?php echo htmlspecialchars($data['batasPembayaran']); ?></td>
                                             <td><?php echo htmlspecialchars($data['durasiSewa']); ?> bulan</td>
@@ -51,16 +54,19 @@ function formatRupiah($angka) {
                                                 </span>
                                             </td>
                                             <td><?php echo htmlspecialchars($data['idPenyewa']); ?></td>
-                                            <td><?php echo htmlspecialchars($data['jatuh_tempo']); ?></td>
                                             <td>
-                                                <!-- <a href="?page=pembayaran&aksi=detail&id=<?php echo $data['idPembayaran']; ?>" 
+                                            <?php echo htmlspecialchars($data['jatuh_tempo'] ?? 'Belum Ada'); ?>
+                                            </td>
+                                            <td><?php echo htmlspecialchars($data['id_pemesanan']); ?></td>
+                                            <td>
+                                                <a href="?page=pembayaran&aksi=detail&id=<?php echo $data['idPembayaran']; ?>" 
                                                    class="btn btn-info btn-sm">
                                                     <i class="fa fa-eye"></i> Detail
                                                 </a>
                                                 <a onclick="return confirm('Apakah Anda yakin akan menghapus data ini?')" 
                                                    href="?page=pembayaran&aksi=hapus&id=<?php echo $data['idPembayaran']; ?>" 
                                                    class="btn btn-danger btn-sm">
-                                                    <i class="fa fa-trash"></i> Hapus -->
+                                                    <i class="fa fa-trash"></i> Hapus
                                                 </a>
                                             </td>
                                         </tr>

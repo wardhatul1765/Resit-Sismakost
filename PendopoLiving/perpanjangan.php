@@ -9,74 +9,114 @@ if (!isset($_SESSION['idPenyewa'])) {
 }
 
 $idPenyewa = $_SESSION['idPenyewa'];
+$tanggalSekarang = time();
 
 if (isset($_GET['idPemesanan'])) {
     $idPemesanan = $_GET['idPemesanan'];
-
-    // Ambil data pemesanan
-    $sql = "SELECT p.id_pemesanan, p.mulai_menempati_kos, p.batas_menempati_kos, k.namaKamar, k.harga
-            FROM pemesanan p
-            JOIN kamar k ON p.idKamar = k.idKamar
-            WHERE p.id_pemesanan = '$idPemesanan' AND p.id_penyewa = '$idPenyewa'";
     
-    $result = mysqli_query($koneksi, $sql);
-    $row = mysqli_fetch_assoc($result);
-
-    if (!$row) {
-        echo "<script>alert('Pesanan tidak ditemukan.'); window.location.href='pesananku.php';</script>";
-        exit;
+    if (isset($_GET['idPembayaran'])) {
+        $idPembayaran = $_GET['idPembayaran'];
     }
 
-    // Proses perpanjangan
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $durasiPerpanjangan = $_POST['durasi_perpanjangan'];
-        $metodePembayaran = $_POST['metode_pembayaran'];
+    if (isset($_GET['idPenyewa'])) {
+        $idPenyewa = $_GET['idPenyewa'];
+    }
 
-        // Validasi dan unggah bukti transfer
-        if (isset($_FILES['bukti_transfer']) && $_FILES['bukti_transfer']['error'] == 0) {
-            $targetDir = "uploads/";
-            $fileName = basename($_FILES['bukti_transfer']['name']);
-            $targetFilePath = $targetDir . $fileName;
-            $fileType = strtolower(pathinfo($targetFilePath, PATHINFO_EXTENSION));
+    // Ambil data pemesanan dan pembayaran
+    $sql = "SELECT p.id_pemesanan, p.uang_muka, p.bukti_transfer, p.batas_menempati_kos,  
+            pb.idPembayaran, pb.tanggalPembayaran, pb.batasPembayaran, pb.durasiSewa, pb.statusPembayaran, pb.jatuh_tempo,
+            k.namaKamar
+        FROM pemesanan p
+        LEFT JOIN pembayaran pb ON p.id_pemesanan = pb.id_pemesanan
+        JOIN penyewa ps ON p.id_penyewa = ps.idPenyewa  
+        JOIN kamar k ON p.idKamar = k.idKamar 
+        WHERE p.id_pemesanan = '$idPemesanan' AND p.id_penyewa = '$idPenyewa'";
 
-            $validExtensions = ["jpg", "jpeg", "png", "gif", "pdf"];
-            if (in_array($fileType, $validExtensions)) {
-                if (move_uploaded_file($_FILES["bukti_transfer"]["tmp_name"], $targetFilePath)) {
-                    // Hitung biaya perpanjangan
-                    $biayaPerpanjangan = $row['harga'] * $durasiPerpanjangan;
+    $result = mysqli_query($koneksi, $sql);
 
-                    // Perpanjang batas masa sewa
-                    $batasMenempatiKos = date_create($row['batas_menempati_kos']);
-                    date_add($batasMenempatiKos, date_interval_create_from_date_string("$durasiPerpanjangan months"));
-                    $batasMenempatiKosBaru = date_format($batasMenempatiKos, 'Y-m-d');
+    if ($result) {
+        $data = mysqli_fetch_assoc($result);
+    } else {
+        echo "<script>alert('Data pemesanan tidak ditemukan.'); window.location.href='index.php';</script>";
+    }
+}
 
-                    // Update batas masa sewa dan ubah status menjadi Perpanjangan
-                    $update = "UPDATE pemesanan 
-                               SET batas_menempati_kos = '$batasMenempatiKosBaru', 
-                                   status = 'Perpanjangan', 
-                                   bukti_transfer = '$fileName' 
-                               WHERE id_pemesanan = '$idPemesanan'";
+// Gunakan $data untuk mengambil nilai
+$BatasMenempatiKos = $data['batas_menempati_kos'];
+$uangMukaPerBulan = $data['uang_muka'] / $data['durasiSewa'];
+$durasiOld = $data['durasiSewa'];
+$uangMukaOld = $data['uang_muka'];
 
-                    if (mysqli_query($koneksi, $update)) {
-                        echo "<script>alert('Perpanjangan masa sewa berhasil. Metode pembayaran: $metodePembayaran.'); window.location.href='pesananku.php';</script>";
-                    } else {
-                        echo "<script>alert('Gagal memperpanjang masa sewa. Silakan coba lagi.');</script>";
-                    }
-                } else {
-                    echo "<script>alert('Gagal mengunggah bukti pembayaran. Silakan coba lagi.');</script>";
-                }
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unggah_bukti'])) {
+    if (isset($_FILES['bukti_transfer']) && $_FILES['bukti_transfer']['error'] == 0) {
+        // Tentukan direktori tujuan unggah
+        $targetDir = "uploads/";
+        $fileName = basename($_FILES['bukti_transfer']['name']);
+        $targetFilePath = $targetDir . $fileName;
+        $fileType = strtolower(pathinfo($targetFilePath, PATHINFO_EXTENSION));
+
+        // Validasi ekstensi file
+        $validExtensions = array("jpg", "jpeg", "png", "gif", "pdf");
+        if (!in_array($fileType, $validExtensions)) {
+            echo "<script>alert('Format file tidak valid. Hanya file JPG, PNG, JPEG, GIF, dan PDF yang diperbolehkan.');</script>";
+            exit;
+        }
+
+        // Pindahkan file yang diupload ke direktori tujuan
+        if (move_uploaded_file($_FILES['bukti_transfer']['tmp_name'], $targetFilePath)) {
+            $durasiSewaBaru = isset($_POST['durasiBaru']) ? intval($_POST['durasiBaru']) : $durasiOld;
+            $uangMukaBaru = $uangMukaPerBulan * $durasiSewaBaru;
+            $tanggalPembayaran = date('Y-m-d H:i:s', $tanggalSekarang);
+            $batasMenempatiTimestamp = strtotime($BatasMenempatiKos);
+
+            if ($durasiSewaBaru > $durasiOld) {
+                // Jika durasi bertambah, hitung batas menempati kos baru
+                $newBatasMenempatiKos = date('Y-m-d', strtotime("+$durasiSewaBaru months", $batasMenempatiTimestamp));
             } else {
-                echo "<script>alert('Format file tidak valid. Hanya JPG, PNG, JPEG, GIF, dan PDF yang diperbolehkan.');</script>";
+                // Jika durasi berkurang, cukup kurangi waktu
+                $newBatasMenempatiKos = date('Y-m-d', strtotime("+$durasiSewaBaru months", $batasMenempatiTimestamp));
+            }
+
+            // Mulai transaksi
+            mysqli_begin_transaction($koneksi);
+
+            // Update tabel pemesanan dengan bukti transfer baru
+            $updatePemesananSql = "UPDATE pemesanan SET 
+                                    uang_muka = '$uangMukaBaru', 
+                                    bukti_transfer = '$fileName',
+                                    batas_menempati_kos = '$newBatasMenempatiKos', 
+                                    status = 'Perpanjangan'
+                                    WHERE id_pemesanan = '$idPemesanan'";
+
+            // Update tabel pembayaran dengan data yang sudah diperbarui
+            $updatePembayaranSql = "UPDATE pembayaran SET 
+                                    tanggalPembayaran = '$tanggalPembayaran', 
+                                    durasiSewa = '$durasiSewaBaru',
+                                    batasPembayaran = '$newBatasMenempatiKos', 
+                                    statusPembayaran = 'Lunas'
+                                    WHERE idPembayaran = '$idPembayaran'";
+
+            // Eksekusi query
+            $resultPemesanan = mysqli_query($koneksi, $updatePemesananSql);
+            $resultPembayaran = mysqli_query($koneksi, $updatePembayaranSql);
+
+            if ($resultPemesanan && $resultPembayaran) {
+                // Jika semua query berhasil, commit transaksi
+                mysqli_commit($koneksi);
+                echo "<script>alert('Perpanjangan Sewa berhasil!'); window.location.href='pesananku.php';</script>";
+            } else {
+                // Jika ada kesalahan, rollback transaksi
+                mysqli_rollback($koneksi);
+                echo "<script>alert('Gagal memperpanjang sewa. Silakan coba lagi.');</script>";
             }
         } else {
-            echo "<script>alert('Harap unggah bukti pembayaran.');</script>";
+            echo "<script>alert('Gagal mengunggah bukti transfer. Silakan coba lagi.');</script>";
         }
+    } else {
+        echo "<script>alert('File bukti transfer tidak ditemukan atau terjadi kesalahan saat mengunggah.');</script>";
     }
-} else {
-    echo "<script>alert('ID Pemesanan tidak ditemukan.'); window.location.href='pesananku.php';</script>";
 }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="id">
@@ -85,118 +125,101 @@ if (isset($_GET['idPemesanan'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perpanjang Sewa</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .highlight { color: #f00; font-weight: bold; }
+        .info-box { padding: 15px; background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 5px; }
+    </style>
 </head>
 <body>
 <div class="container mt-5">
-    <h2>Perpanjang Sewa Kamar</h2>
-    <p>Anda ingin memperpanjang sewa kamar <strong><?= htmlspecialchars($row['namaKamar']) ?></strong>?</p>
-    <p>Masa sewa Anda saat ini berakhir pada: <?= htmlspecialchars($row['batas_menempati_kos']) ?></p>
+    <h2 class="text-center">Perpanjangan Sewa Kamar</h2>
+    <div class="info-box mb-4">
+        <h5>Informasi Pemesanan</h5>
+        <p>Kamar: <strong><?= htmlspecialchars($data['namaKamar'] ?? '-') ?></strong></p>
+        <p>Batas Sewa Saat Ini: <span class="highlight"><?= htmlspecialchars(date('d-m-Y', strtotime($BatasMenempatiKos))) ?></span></p>
+        <p>Durasi Sebelumnya: <strong><?= htmlspecialchars($durasiOld) ?> bulan</strong></p>
+        <p>Uang Muka Sebelumnya: <strong>Rp <?= number_format($uangMukaOld, 0, ',', '.') ?></strong></p>
+        <p>Status Pembayaran: <strong><?= htmlspecialchars($data['statusPembayaran'] ?? 'Belum Lunas') ?></strong></p>
+    </div>
+    <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#paymentModal">Lanjutkan Perpanjangan</button>
 
-    <form method="post">
-        <div class="mb-3">
-            <label for="durasi_perpanjangan" class="form-label">Durasi Perpanjangan (Bulan):</label>
-            <input type="number" class="form-control" id="durasi_perpanjangan" name="durasi_perpanjangan" required min="1" onchange="updateHarga(<?= $row['harga'] ?>)">
-        </div>
-        <button type="button" class="btn btn-primary" onclick="showPaymentModal()">Bayar Sekarang</button>
-    </form>
-</div>
-
-<div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="paymentModalLabel">Pilih Metode Pembayaran</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form method="post" enctype="multipart/form-data">
-                    <div class="mb-3">
-                        <label for="metode_pembayaran" class="form-label">Metode Pembayaran:</label>
-                        <select name="metode_pembayaran" id="metode_pembayaran" class="form-select" required>
-                            <option value="" selected disabled>Pilih metode pembayaran</option>
-                            <option value="QRIS">QRIS</option>
-                            <option value="Bank Transfer">Bank Transfer</option>
-                        </select>
+    <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="paymentModalLabel">Formulir Perpanjangan Sewa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        <h6 class="mb-3">Pilih Metode Pembayaran</h6>
+                        <div class="mb-3">
+                            <select class="form-select" id="metodePembayaran" name="metodePembayaran" required>
+                                <option value="" disabled selected>Pilih metode pembayaran</option>
+                                <option value="QRIS">QRIS</option>
+                                <option value="Bank Transfer">Bank Transfer</option>
+                            </select>
+                        </div>
+                        <div id="paymentInstructions" class="mt-3 mb-3"></div>
+                        <hr>
+                        <h6 class="mb-3">Detail Perpanjangan</h6>
+                        <div class="mb-3">
+                            <label for="durasiBaru" class="form-label">Durasi Perpanjangan (Bulan)</label>
+                            <input type="number" id="durasiBaru" name="durasiBaru" class="form-control" value="<?= htmlspecialchars($durasiOld) ?>" min="1" required>
+                        </div>
+                        <p>Estimasi Total Uang Muka: <span id="uangMukaBaru">Rp <?= number_format($uangMukaOld, 0, ',', '.') ?></span></p>
+                        <div id="fileUploadSection" class="mb-3" style="display: none;">
+                            <label for="bukti_transfer" class="form-label">Unggah Bukti Pembayaran</label>
+                            <input type="file" name="bukti_transfer" id="bukti_transfer" class="form-control" required>
+                        </div>
                     </div>
-                    <div id="paymentInstructions" class="mb-3">
-                        <p><strong>Silakan pilih metode pembayaran untuk melihat instruksi.</strong></p>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" name="unggah_bukti" class="btn btn-primary">Konfirmasi</button>
                     </div>
-                    <div class="mb-3">
-                        <label for="durasi_perpanjangan_modal" class="form-label">Durasi Perpanjangan (Bulan):</label>
-                        <input type="number" class="form-control" id="durasi_perpanjangan_modal" name="durasi_perpanjangan" readonly>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Total Biaya Perpanjangan:</label>
-                        <p id="biaya_perpanjangan_modal">Rp0</p>
-                        <label for="bukti_transfer" class="form-label">Unggah Bukti Transfer:</label>
-                        <input type="file" class="form-control" id="bukti_transfer" name="bukti_transfer" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Konfirmasi Pembayaran</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
 
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // Perhitungan biaya berdasarkan durasi perpanjangan
-    const biayaPerBulan = 300000; // Sesuaikan harga per bulan
-    const durasiInput = document.getElementById("durasi_perpanjangan_modal");
-    const biayaDisplay = document.getElementById("biaya_perpanjangan_modal");
-    const metodeSelect = document.getElementById("metode_pembayaran");
+    function hitungUangMukaBaru() {
+        const uangMukaPerBulan = <?= $uangMukaPerBulan ?>;
+        const durasiBaru = parseInt(document.getElementById('durasiBaru').value);
+
+        if (!isNaN(durasiBaru)) {
+            const uangMukaBaru = uangMukaPerBulan * durasiBaru;
+            document.getElementById('uangMukaBaru').innerText = 'Rp ' + uangMukaBaru.toLocaleString();
+        }
+    }
+
+    document.getElementById("durasiBaru").addEventListener("input", hitungUangMukaBaru);
+
+    const metodeSelect = document.getElementById("metodePembayaran");
     const instructionsDiv = document.getElementById("paymentInstructions");
+    const fileUploadSection = document.getElementById('fileUploadSection');
 
     metodeSelect.addEventListener("change", function () {
         const method = metodeSelect.value;
 
         if (method === "QRIS") {
-            instructionsDiv.innerHTML = `
-                <h5>Scan QRIS berikut untuk pembayaran:</h5>
-                <img src="qris_code.png" alt="QRIS Code" class="img-fluid" style="max-width: 200px;">
-            `;
+            instructionsDiv.innerHTML = `<h6>Scan QRIS berikut:</h6><img src="qris_code.png" alt="QRIS Code" class="img-fluid" style="max-width: 200px;">`;
+            fileUploadSection.style.display = 'block';
         } else if (method === "Bank Transfer") {
-            instructionsDiv.innerHTML = `
-                <h5>Transfer ke rekening berikut:</h5>
-                <p>Bank ABC<br>Nomor Rekening: 1234567890<br>Atas Nama: Kos Elisa</p>
-            `;
+            instructionsDiv.innerHTML = `<h6>Transfer ke Rekening:</h6><p>Bank ABC<br>1234567890<br>Atas Nama: Kos Elisa</p>`;
+            fileUploadSection.style.display = 'block';
         } else {
-            instructionsDiv.innerHTML = '<p><strong>Silakan pilih metode pembayaran untuk melihat instruksi.</strong></p>';
+            instructionsDiv.innerHTML = '<p><strong>Pilih metode pembayaran.</strong></p>';
+            fileUploadSection.style.display = 'none';
         }
     });
 
-    // Simulasi pengisian durasi dan biaya
-    durasiInput.value = 3;
-    const totalBiaya = biayaPerBulan * durasiInput.value;
-    biayaDisplay.textContent = `Rp${totalBiaya.toLocaleString("id-ID")}`;
-
-    function goBack() {
-        window.history.back();
-    }
-
-    document.querySelector('form').addEventListener('submit', function (e) {
-        const metode = document.getElementById('metode_pembayaran').value;
-        if (!metode) {
-            e.preventDefault();
-            alert('Harap pilih metode pembayaran terlebih dahulu!');
-        }
-    });
-
-    const hargaPerBulan = <?= $row['harga'] ?>;
-
-    function updateHarga(hargaPerBulan) {
-        const durasi = parseInt(document.getElementById('durasi_perpanjangan').value) || 0;
-        const totalBiaya = durasi * hargaPerBulan;
-
-        document.getElementById('durasi_perpanjangan_modal').value = durasi;
-        document.getElementById('biaya_perpanjangan_modal').textContent = `Rp${totalBiaya.toLocaleString('id-ID')}`;
-    }
-
-    function showPaymentModal() {
-        const paymentModal = new bootstrap.Modal(document.getElementById('paymentModal'));
-        paymentModal.show();
-    }
+    <?php if (isset($_GET['modal']) && $_GET['modal'] === 'true'): ?>
+    const paymentModal = new bootstrap.Modal(document.getElementById('paymentModal'));
+    paymentModal.show();
+    <?php endif; ?>
 </script>
 </body>
 </html>

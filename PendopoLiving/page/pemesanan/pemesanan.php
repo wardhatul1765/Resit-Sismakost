@@ -16,7 +16,7 @@ function formatRupiah($angka) {
                     <table class="table table-striped table-hover table-bordered text-center" id="dataTables-example">
                         <thead class="thead-dark">
                             <tr>
-                                <!-- <th>No</th> -->
+                                <th>No</th>
                                 <th>ID Pemesanan</th>
                                 <th>Pemesanan Kamar</th>
                                 <th>Uang Muka</th>
@@ -24,6 +24,8 @@ function formatRupiah($angka) {
                                 <th>Tenggat Uang Muka</th>
                                 <th>Mulai Menempati Kos</th>
                                 <th>Batas Menempati Kos</th>
+                                <th>ID Penyewa</th>
+                                <th>ID Kamar</th>
                                 <th>Status</th>
                                 <th>Aksi</th>
                             </tr>
@@ -31,8 +33,7 @@ function formatRupiah($angka) {
                         <tbody>
                             <?php
                                 $no = 1;
-                                $sql = $koneksi->query("SELECT * FROM pemesanan WHERE status NOT IN ('Keluar', 'Dibatalkan')");
-
+                                $sql = $koneksi->query("SELECT * FROM pemesanan WHERE status != 'Keluar'");
                                 if ($sql === false) {
                                     echo "<tr><td colspan='10'>Error: " . $koneksi->error . "</td></tr>";
                                 } else {
@@ -43,15 +44,35 @@ function formatRupiah($angka) {
                                         $statusPemesanan = htmlspecialchars($data['status']);
                                         $badgeClassStatus = ($statusPemesanan === 'Aktif') ? 'badge-info' : 'badge-secondary';
                             ?>
-                                        <tr class="odd gradeX">
-                                            <!-- <td><?php echo $no++; ?></td> -->
-                                            <td><?php echo $data['id_pemesanan']; ?></td>
-                                            <td><?php echo $data['pemesanan_kamar']; ?></td>
+                                        <tr>
+                                            <td><?php echo $no++; ?></td>
+                                            <td><?php echo htmlspecialchars($data['id_pemesanan']); ?></td>
+                                            <td><?php echo htmlspecialchars($data['pemesanan_kamar']); ?></td>
                                             <td><?php echo formatRupiah($data['uang_muka']); ?></td>
                                             <td>
-                                                <a href="page/pemesanan/edit.php?id_pemesanan=<?php echo $data['id_pemesanan'];?>" class="btn btn-primary">Edit</a>
-                                                <a onclick="return confirm('Apakah Anda Yakin Akan Menghapus Data ini..?')" 
-                                                href="?page=pemesanan&aksi=hapus&idPemesanan=<?php echo $data['id_pemesanan'];?>" class="btn btn-danger">Hapus</a>
+                                                <span class="badge <?php echo $badgeClassUM; ?>">
+                                                    <?php echo $statusUangMuka; ?>
+                                                </span>
+                                            </td>
+                                            <td><?php echo htmlspecialchars($data['tenggat_uang_muka']); ?></td>
+                                            <td><?php echo htmlspecialchars($data['mulai_menempati_kos']); ?></td>
+                                            <td><?php echo htmlspecialchars($data['batas_menempati_kos']); ?></td>
+                                            <td><?php echo htmlspecialchars($data['id_penyewa']); ?></td>
+                                            <td><?php echo htmlspecialchars($data['idKamar']); ?></td>
+                                            <td>
+                                                <span class="badge <?php echo $badgeClassStatus; ?>">
+                                                    <?php echo $statusPemesanan; ?>
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="?page=pemesanan&aksi=edit&idPemesanan=<?php echo $data['id_pemesanan'];?>" class="btn btn-primary btn-sm">
+                                                    <i class="fa fa-edit"></i> Edit
+                                                </a>
+                                                <a onclick="return confirm('Apakah Anda yakin akan menghapus data ini?')" 
+                                                   href="?page=pemesanan&aksi=hapus&idPemesanan=<?php echo $data['id_pemesanan'];?>" 
+                                                   class="btn btn-danger btn-sm">
+                                                    <i class="fa fa-trash"></i> Hapus
+                                                </a>
                                             </td>
                                         </tr>
                             <?php 

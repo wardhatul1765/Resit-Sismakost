@@ -23,13 +23,34 @@ if (isset($_SESSION['idAdmin'])) {
 }
 
 // Cek status pemesanan yang masih "Menunggu Dikonfirmasi"
-$query = "SELECT COUNT(*) FROM pemesanan WHERE status = 'Menunggu Dikonfirmasi'";
+$query = "SELECT COUNT(*) AS total FROM pemesanan WHERE status IN ('Menunggu Dikonfirmasi', 'Perpanjangan')";
 $result = $koneksi->query($query);
 $row = $result->fetch_row();
 $pendingOrders = $row[0]; // Jumlah pemesanan yang belum dikonfirmasi
 
 // Jika ada pemesanan yang belum dikonfirmasi, tampilkan indikator
 $showBellIndicator = $pendingOrders > 0 ? 'block' : 'none';
+
+
+// Hitung jumlah pesan baru berdasarkan kriteria waktu (contoh: pesan dalam 24 jam terakhir)
+// Query untuk menghitung jumlah pesan yang belum dibaca
+$status = isset($_GET['status']) ? $_GET['status'] : 'Belum Dibaca'; // Default ke 'Belum Dibaca'
+
+// Query untuk menghitung jumlah pesan sesuai status
+$queryCount = "SELECT COUNT(*) FROM pesan WHERE `read` = '$status'";
+$result = $koneksi->query($queryCount);
+$row = $result->fetch_row();
+$newMessages = $row[0];  // Mengambil hasil COUNT(*) untuk jumlah pesan sesuai status
+
+// Query untuk mengambil data pesan berdasarkan status
+$query = "SELECT idPesan, idPenyewa, subject, message, created_at FROM pesan WHERE `read` = '$status' ORDER BY created_at DESC";
+$result = $koneksi->query($query);
+$messages = [];
+
+// Menyimpan data pesan dalam array $messages
+while ($row = $result->fetch_assoc()) {
+    $messages[] = $row;
+}
 ?>
 
 <!DOCTYPE html>
@@ -82,6 +103,32 @@ $showBellIndicator = $pendingOrders > 0 ? 'block' : 'none';
         /* Menampilkan indikator jika ada notifikasi */
         #bell-indicator {
             display: block; /* Tampilkan indikator jika ada pemesanan yang menunggu konfirmasi */
+        }
+
+        .right-section .bx-envelope {
+            position: relative; /* Posisi relatif untuk penempatan badge */
+            font-size: 16px; /* Ukuran ikon amplop */
+        }
+
+        #envelope-indicator {
+            position: absolute; /* Untuk mengatur posisi relatif terhadap ikon */
+            top: -5px; /* Atur sedikit di atas */
+            right: -5px; /* Atur sedikit di kanan */
+            background-color: red; /* Warna latar belakang badge */
+            color: white; /* Warna teks badge */
+            border-radius: 50%; /* Membentuk lingkaran */
+            width: 15px; /* Lebar indikator */
+            height: 15px; /* Tinggi indikator */
+            display: none; /* Tersembunyi secara default */
+            text-align: center; /* Pusatkan teks di dalam lingkaran */
+            font-size: 12px; /* Ukuran teks di dalam indikator */
+            font-weight: bold; /* Teks tebal */
+            line-height: 15px; /* Vertikal tengah untuk teks */
+        }
+
+        /* Tampilkan indikator jika ada pesan baru */
+        #envelope-indicator[data-show="true"] {
+            display: block; /* Tampilkan indikator */
         }
 
 
@@ -192,6 +239,14 @@ $showBellIndicator = $pendingOrders > 0 ? 'block' : 'none';
         $('#pendingOrdersModal').modal('show'); // Tampilkan modal pemesanan
     });
 
+     // Tampilkan modal pesan
+    const envelopeIcon = document.querySelector('.bx-envelope');
+    const envelopeIndicator = document.getElementById('envelope-indicator');
+
+    envelopeIcon.addEventListener('click', () => {
+        $('#messageModal').modal('show'); // Tampilkan modal pesan
+    });
+
     // Input pencarian dalam tabel pemesanan
     const searchInput = document.getElementById('searchInput');
     const tableBody = document.getElementById('pendingOrdersTableBody');
@@ -252,9 +307,9 @@ function fetchPendingOrders() {
                     const row = `
                        <tr>
                             <td>${order.id_pemesanan}</td>
+                            <td>${order.pemesanan_kamar}</td>
                             <td>${order.id_penyewa}</td>
                             <td>${order.idKamar}</td>
-                            <td>${order.pemesanan_kamar}</td>
                             <td>${order.uang_muka}</td>
                             <td>${order.status_uang_muka}</td>
                             <td>
@@ -309,7 +364,11 @@ function fetchPendingOrders() {
                         <!-- <?php echo $pendingOrders > 0 ? $pendingOrders : ''; ?> -->
                     </span> <!-- Indikator notifikasi dengan angka -->
                 </i>
-                <i class='bx bx-envelope'></i>
+                <i class='bx bx-envelope'>
+                    <span id="envelope-indicator" class="badge-indicator" style="display: <?php echo $newMessages > 0 ? 'block' : 'none'; ?>;">
+                        <!-- <?php echo $newMessages > 0 ? $newMessages : ''; ?> -->
+                    </span>
+                </i>
                 <i class='bx bx-search'></i>
 
                 <!-- Profile Section -->
@@ -332,41 +391,41 @@ function fetchPendingOrders() {
         </div>
     </div>
 
-    <!-- Modal for Pending Orders -->
-    <div class="modal fade custom-modal" id="pendingOrdersModal" tabindex="-1" aria-labelledby="pendingOrdersModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="pendingOrdersModalLabel">Daftar Pemesanan - Menunggu Dikonfirmasi</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                 <!-- Input Pencarian -->
-                 <div class="mb-3">
-                        <input type="text" id="searchInput" class="form-control" placeholder="Cari">
+        <!-- Modal for Pending Orders -->
+        <div class="modal fade custom-modal" id="pendingOrdersModal" tabindex="-1" aria-labelledby="pendingOrdersModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="pendingOrdersModalLabel">Daftar Pemesanan</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <table class="table table-bordered table-striped table-hover text-center">
-                        <thead class="thead-dark">
-                            <tr>
-                                <th>ID Pemesanan</th>
-                                <th>ID Penyewa</th>
-                                <th>ID Kamar</th>
-                                <th>Pemesanan Kamar</th>
-                                <th>Uang Muka</th>
-                                <th>Status Uang Muka</th>
-                                <th>Bukti Transfer</th>
-                                <th>Status</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="pendingOrdersTableBody">
-                            <!-- Data akan diinject secara dinamis via JavaScript -->
-                        </tbody>
-                    </table>
+                    <div class="modal-body">
+                    <!-- Input Pencarian -->
+                    <div class="mb-3">
+                            <input type="text" id="searchInput" class="form-control" placeholder="Cari">
+                        </div>
+                        <table class="table table-bordered table-striped table-hover text-center">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th>ID Pemesanan</th>
+                                    <th>Pemesanan Kamar</th>
+                                    <th>ID Penyewa</th>
+                                    <th>ID Kamar</th>
+                                    <th>Uang Muka</th>
+                                    <th>Status Uang Muka</th>
+                                    <th>Bukti Transfer</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pendingOrdersTableBody">
+                                <!-- Data akan diinject secara dinamis via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
         <!-- Modal untuk melihat bukti transfer -->
     <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
@@ -382,6 +441,69 @@ function fetchPendingOrders() {
             </div>
         </div>
     </div>
+
+<!-- Modal Pesan -->
+<!-- Modal untuk Pesan -->
+<div class="modal fade custom-modal" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="messageModalLabel">Daftar Pesan</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Tombol untuk beralih antara Belum Dibaca dan Sudah Dibaca -->
+                <div class="mb-3">
+                    <a href="?status=Belum Dibaca" class="btn btn-primary">Belum Dibaca</a>
+                    <a href="?status=Sudah Dibaca" class="btn btn-secondary">Sudah Dibaca</a>
+                </div>
+
+                <!-- Tabel untuk menampilkan pesan -->
+                <table class="table table-bordered table-striped table-hover text-center">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>ID Pesan</th>
+                            <th>ID Penyewa</th>
+                            <th>Subject</th>
+                            <th>Message</th>
+                            <?php if ($status == 'Belum Dibaca'): ?>
+                                <th>Aksi</th>
+                            <?php endif; ?>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (empty($messages)): ?>
+                            <tr>
+                                <td colspan="5" class="text-center">Tidak ada pesan <?php echo htmlspecialchars($status); ?>.</td>
+                            </tr>
+                        <?php else: ?>
+                            <?php foreach ($messages as $message): ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($message['idPesan']); ?></td>
+                                    <td><?php echo htmlspecialchars($message['idPenyewa']); ?></td>
+                                    <td><?php echo htmlspecialchars($message['subject']); ?></td>
+                                    <td><?php echo htmlspecialchars($message['message']); ?></td>
+                                    <?php if ($status == 'Belum Dibaca'): ?>
+                                        <td>
+                                            <form method="POST" action="proses_keluar.php">
+                                                <input type="hidden" name="idPesan" value="<?php echo $message['idPesan']; ?>">
+                                                <input type="hidden" name="idPenyewa" value="<?php echo $message['idPenyewa']; ?>">
+                                                <button type="submit" class="btn btn-success btn-sm">Proses</button>
+                                            </form>
+                                        </td>
+                                    <?php endif; ?>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
 
     <!-- Content -->
     <div class="container mt-5">
