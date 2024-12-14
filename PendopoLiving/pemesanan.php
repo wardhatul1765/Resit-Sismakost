@@ -36,14 +36,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $idPenyewa = isset($_SESSION['idPenyewa']) ? $_SESSION['idPenyewa'] : null;
 
 // Cek apakah penyewa sudah memiliki pemesanan aktif
-// $sqlCekPemesanan = "SELECT * FROM pemesanan WHERE id_penyewa = '$idPenyewa' AND status IN ('Menunggu Pembayaran', 'Menunggu Dikonfirmasi', 'Dikonfirmasi')";
-// $resultCekPemesanan = mysqli_query($koneksi, $sqlCekPemesanan);
+$sqlCekPemesanan = "SELECT * FROM pemesanan WHERE id_penyewa = '$idPenyewa' AND status IN ('Menunggu Pembayaran', 'Menunggu Dikonfirmasi', 'Dikonfirmasi')";
+$resultCekPemesanan = mysqli_query($koneksi, $sqlCekPemesanan);
 
-// if (mysqli_num_rows($resultCekPemesanan) > 0) {
-//     echo "<script>alert('Anda sudah memiliki pemesanan aktif. Anda tidak dapat melakukan pemesanan lagi.');</script>";
-//     echo "<script>window.location.href='index.php';</script>";
-//     exit;
-// }
+if (mysqli_num_rows($resultCekPemesanan) > 0) {
+    echo "<script>alert('Anda sudah memiliki pemesanan aktif. Anda tidak dapat melakukan pemesanan lagi.');</script>";
+    echo "<script>window.location.href='index.php';</script>";
+    exit;
+}
 
 
 // Query untuk mendapatkan informasi kamar

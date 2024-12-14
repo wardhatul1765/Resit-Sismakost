@@ -62,6 +62,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unggah_bukti'])) {
             exit;
         }
 
+        $metodePembayaran = isset($_POST['metodePembayaran']) ? $_POST['metodePembayaran'] : '';
+
+        // Validasi apakah metode pembayaran sudah dipilih
+        if (empty($metodePembayaran)) {
+            echo "<script>alert('Silakan pilih metode pembayaran terlebih dahulu.');</script>";
+            exit;
+        }
+
         // Pindahkan file yang diupload ke direktori tujuan
         if (move_uploaded_file($_FILES['bukti_transfer']['tmp_name'], $targetFilePath)) {
             $durasiSewaBaru = isset($_POST['durasiBaru']) ? intval($_POST['durasiBaru']) : $durasiOld;
@@ -100,7 +108,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unggah_bukti'])) {
             $resultPemesanan = mysqli_query($koneksi, $updatePemesananSql);
             $resultPembayaran = mysqli_query($koneksi, $updatePembayaranSql);
 
-            if ($resultPemesanan && $resultPembayaran) {
+           // Perbaikan: Insert data ke tabel transaksi menggunakan prepared statement
+                $insertTransaksiSql = "INSERT INTO transaksi 
+                (id_pemesanan, id_penyewa, id_pembayaran, jenis_transaksi, jumlah_transaksi, tanggal_transaksi, metode_bayar) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+                // Menggunakan prepared statement untuk menghindari SQL injection
+                $stmtTransaksi = $koneksi->prepare($insertTransaksiSql);
+                $jenisTransaksi = 'Perpanjangan';
+                $stmtTransaksi->bind_param('iisssss', $idPemesanan, $idPenyewa, $idPembayaran, $jenisTransaksi, $uangMukaBaru, $tanggalPembayaran, $metodePembayaran);
+
+                // Eksekusi query insert transaksi
+                $resultTransaksi = $stmtTransaksi->execute();
+
+            if ($resultPemesanan && $resultPembayaran && $resultTransaksi) {
                 // Jika semua query berhasil, commit transaksi
                 mysqli_commit($koneksi);
                 echo "<script>alert('Perpanjangan Sewa berhasil!'); window.location.href='pesananku.php';</script>";
@@ -115,7 +136,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unggah_bukti'])) {
     } else {
         echo "<script>alert('File bukti transfer tidak ditemukan atau terjadi kesalahan saat mengunggah.');</script>";
     }
+    $stmtTransaksi->close();
 }
+
+
 ?>
 
 <!DOCTYPE html>

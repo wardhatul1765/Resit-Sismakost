@@ -54,81 +54,67 @@ if (isset($_GET['action']) && $_GET['action'] === 'batalkan' && isset($_GET['idP
     }
 }
 
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $idPenyewa = $_POST['idPenyewa'];
-    $subject = $_POST['subject'];
-    $message = $_POST['message'];
+    // Menangani pengiriman pesan
+    if (isset($_POST['subject'], $_POST['message'], $_POST['idPenyewa'])) {
+        $idPenyewa = $_POST['idPenyewa'];
+        $subject = $_POST['subject'];
+        $message = $_POST['message'];
 
-    // Validasi apakah pengguna memiliki pemesanan aktif
-    $queryCheck = "SELECT id_pemesanan FROM pemesanan WHERE id_penyewa = ? AND status = 'Dikonfirmasi'";
-    $stmtCheck = $koneksi->prepare($queryCheck);
-    $stmtCheck->bind_param("i", $idPenyewa);
-    $stmtCheck->execute();
-    $resultCheck = $stmtCheck->get_result();
+        // Validasi apakah pengguna memiliki pemesanan aktif
+        $queryCheck = "SELECT id_pemesanan FROM pemesanan WHERE id_penyewa = ? AND status = 'Dikonfirmasi'";
+        $stmtCheck = $koneksi->prepare($queryCheck);
+        $stmtCheck->bind_param("i", $idPenyewa);
+        $stmtCheck->execute();
+        $resultCheck = $stmtCheck->get_result();
 
-    if ($resultCheck->num_rows > 0) {
-        // Jika ada id_pemesanan dengan status Aktif, lanjutkan dengan insert ke tabel pesan
-        $queryInsert = "INSERT INTO pesan (idPenyewa, subject, message) VALUES (?, ?, ?)";
-        $stmtInsert = $koneksi->prepare($queryInsert);
-        $stmtInsert->bind_param("iss", $idPenyewa, $subject, $message);
+        if ($resultCheck->num_rows > 0) {
+            // Jika ada id_pemesanan dengan status Dikonfirmasi, lanjutkan dengan insert ke tabel pesan
+            $queryInsert = "INSERT INTO pesan (idPenyewa, subject, message) VALUES (?, ?, ?)";
+            $stmtInsert = $koneksi->prepare($queryInsert);
+            $stmtInsert->bind_param("iss", $idPenyewa, $subject, $message);
 
-        if ($stmtInsert->execute()) {
-            echo "<script>alert('Pengajuan berhasil dikirim. Harap tunggu konfirmasi admin.');</script>";
-            echo "<script>window.location.href = 'pesananku.php';</script>";
+            if ($stmtInsert->execute()) {
+                echo "<script>alert('Pengajuan berhasil dikirim. Harap tunggu konfirmasi admin.');</script>";
+                echo "<script>window.location.href = 'pesananku.php';</script>";
+            } else {
+                echo "<script>alert('Gagal mengirim alasan. Coba lagi nanti.');</script>";
+            }
         } else {
-            echo "<script>alert('Gagal mengirim alasan. Coba lagi nanti.');</script>";
+            // Jika tidak memiliki pemesanan aktif
+            echo "<script>alert('Anda tidak memiliki pemesanan aktif untuk keluar dari kost.');</script>";
+            echo "<script>history.back();</script>";
         }
-    } else {
-        // Jika tidak memiliki pemesanan aktif
-        echo "<script>alert('Anda tidak memiliki pemesanan aktif untuk keluar dari kost.');</script>";
-        echo "<script>history.back();</script>";
     }
-}
 
-// if (isset($_GET['action']) && $_GET['action'] === 'keluar_kost') {
-//     // Update status semua pesanan penyewa menjadi "Keluar"
-//     $updateStatusPesanan = "UPDATE pemesanan 
-//                              SET status = 'Keluar' 
-//                              WHERE id_penyewa = '$idPenyewa' AND status NOT IN ('Dibatalkan', 'Keluar')";
+    // Proses upload bukti transfer
+    if (isset($_POST['unggah_bukti']) && isset($_FILES['bukti_transfer'])) {
+        $idPemesanan = $_POST['idPemesanan'];
+        $idPembayaran = $_POST['idPembayaran'];
 
-//     // Update status kamar yang terkait menjadi "Tersedia"
-//     $updateStatusKamar = "UPDATE kamar 
-//                           SET status = 'Tersedia' 
-//                           WHERE idKamar IN (
-//                               SELECT idKamar 
-//                               FROM pemesanan 
-//                               WHERE id_penyewa = '$idPenyewa' AND status = 'Keluar'
-//                           )";
-
-//     if (mysqli_query($koneksi, $updateStatusPesanan) && mysqli_query($koneksi, $updateStatusKamar)) {
-//         echo "<script>alert('Anda telah keluar dari kost. Semua pesanan telah diperbarui.'); window.location.href='pesananku.php';</script>";
-//     } else {
-//         echo "<script>alert('Gagal memperbarui status pesanan.'); window.location.href='pesananku.php';</script>";
-//     }
-// }
-
-// Proses upload bukti transfer
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unggah_bukti'])) {
-
-    $idPemesanan = $_POST['idPemesanan'];
-    $idPembayaran = $_POST['idPembayaran'];
-    $metodePembayaran = $_POST['metode_pembayaran'];
-
-    // Proses unggah file
-    if (isset($_FILES['bukti_transfer'])) {
+        // Proses unggah file
         $targetDir = "uploads/";
         $fileName = basename($_FILES['bukti_transfer']['name']);
         $targetFilePath = $targetDir . $fileName;
+        $metodePembayaran = isset($_POST['metode_pembayaran']) ? $_POST['metode_pembayaran'] : '';
+
+        // Validasi apakah metode pembayaran sudah dipilih
+        if (empty($metodePembayaran)) {
+            echo "<script>alert('Silakan pilih metode pembayaran terlebih dahulu.');</script>";
+            exit;
+        }
 
         if (move_uploaded_file($_FILES['bukti_transfer']['tmp_name'], $targetFilePath)) {
             // Ambil sisa pembayaran dan uang muka dari database
-            $query = "SELECT sisa_pembayaran, uang_muka FROM pemesanan WHERE id_pemesanan = '$idPemesanan'";
+            $query = "SELECT sisa_pembayaran, uang_muka, id_penyewa FROM pemesanan WHERE id_pemesanan = '$idPemesanan'";
             $resultQuery = mysqli_query($koneksi, $query);
             $row = mysqli_fetch_assoc($resultQuery);
 
             if ($row) {
                 $sisaPembayaran = $row['sisa_pembayaran'];
                 $uangMuka = $row['uang_muka'];
+                $idPenyewa = $row['id_penyewa']; // Ambil id penyewa
 
                 // Hitung total pembayaran
                 $totalPembayaran = $sisaPembayaran + $uangMuka;
@@ -149,15 +135,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unggah_bukti'])) {
 
                 // Jalankan kedua query
                 if (mysqli_query($koneksi, $updatePemesanan) && mysqli_query($koneksi, $updatePembayaran)) {
-                    echo "<script>alert('Pembayaran berhasil!'); window.location.href='pesananku.php';</script>";
+                    // Tambahkan transaksi ke tabel transaksi
+                    $jenisTransaksi = 'Sisa Pembayaran'; // Jenis transaksi
+                    $tanggalTransaksi = date('Y-m-d H:i:s'); // Waktu transaksi
+                    $insertTransaksiSql = "INSERT INTO transaksi 
+                        (id_pemesanan, id_penyewa, id_pembayaran, jenis_transaksi, jumlah_transaksi, tanggal_transaksi, metode_bayar) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+                    // Siapkan prepared statement untuk insert transaksi
+                    $stmtTransaksi = $koneksi->prepare($insertTransaksiSql);
+                    $stmtTransaksi->bind_param("iisssss", $idPemesanan, $idPenyewa, $idPembayaran, $jenisTransaksi, $sisaPembayaran, $tanggalTransaksi, $metodePembayaran);
+
+                    // Eksekusi query insert transaksi
+                    if ($stmtTransaksi->execute()) {
+                        echo "<script>alert('Pembayaran berhasil!'); window.location.href='pesananku.php';</script>";
+                    } else {
+                        echo "<script>alert('Gagal menyimpan data transaksi.');</script>";
+                    }
+
+                    $stmtTransaksi->close(); // Menutup prepared statement
                 } else {
                     echo "<script>alert('Kesalahan saat memperbarui data pembayaran.');</script>";
                 }
-                } else {
+            } else {
                 echo "<script>alert('Data pemesanan tidak ditemukan.');</script>";
-                }
-                } else {
-                echo "<script>alert('Gagal mengunggah bukti transfer.');</script>";
+            }
+        } else {
+            echo "<script>alert('Gagal mengunggah bukti transfer.');</script>";
         }
     }
 }

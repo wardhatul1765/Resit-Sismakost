@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Ubah nomor telepon ke format Indonesia (contoh: 08123456789 menjadi +628123456789)
             if (substr($noTelepon, 0, 1) == '0') {
-                $noTelepon = '+62' . substr($noTelepon, 1);
+                $noTelepon = '62' . substr($noTelepon, 1);
             }
 
             // Pesan WhatsApp untuk konfirmasi pengajuan keluar dan pengembalian kunci

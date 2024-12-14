@@ -220,66 +220,114 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pilih_metode'])) {
                 echo "<script>alert('Format file tidak valid. Hanya file JPG, PNG, JPEG, GIF, dan PDF yang diperbolehkan.');</script>";
                 exit;
             }
+
+            $metodePembayaran = isset($_POST['pembayaran']) ? $_POST['pembayaran'] : '';
+
+            // Validasi apakah metode pembayaran sudah dipilih
+            if (empty($metodePembayaran)) {
+                echo "<script>alert('Silakan pilih metode pembayaran terlebih dahulu.');</script>";
+                exit;
+            }
+
+            
     
-            // Proses unggah file
-            if (move_uploaded_file($_FILES["bukti_transfer"]["tmp_name"], $targetFilePath)) {
-                $sqlUpdatePemesanan = "UPDATE pemesanan SET bukti_transfer = ? WHERE id_pemesanan = ?";
-                $stmtUpdatePemesanan = mysqli_prepare($koneksi, $sqlUpdatePemesanan);
-                mysqli_stmt_bind_param($stmtUpdatePemesanan, 'ss', $fileName, $idPemesanan);
-    
-                if (mysqli_stmt_execute($stmtUpdatePemesanan)) {
-                    echo "<script>alert('Bukti transfer berhasil diupload dan database diperbarui.');</script>";
-                } else {
-                    echo "<script>alert('Terjadi kesalahan saat memperbarui database.');</script>";
-                }
-    
-                // Proses pembayaran untuk kondisi pertama
-                mysqli_begin_transaction($koneksi);  // Pastikan transaksi dimulai
-                try {
-                    // Proses untuk pembayaran awal (jika belum melewati batas_menempati_kos)
-                    $jatuhTempo = null;  // Jatuh tempo diatur null jika belum melewati batas
-                    // Update data pemesanan dengan bukti transfer
-                    $sqlUpdatePemesanan = "UPDATE pemesanan SET bukti_transfer = ? WHERE id_pemesanan = ?";
-                    $stmtUpdatePemesanan = mysqli_prepare($koneksi, $sqlUpdatePemesanan);
-                    mysqli_stmt_bind_param($stmtUpdatePemesanan, 'ss', $fileName, $idPemesanan);
-                    if (mysqli_stmt_execute($stmtUpdatePemesanan)) {
-                        // Insert data pembayaran untuk pembayaran awal
-                        $sqlInsertPembayaran = "INSERT INTO pembayaran (tanggalPembayaran, batasPembayaran, durasiSewa, StatusPembayaran, idPenyewa, jatuh_tempo, id_pemesanan) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?)";
-    
-                        $stmtInsert = mysqli_prepare($koneksi, $sqlInsertPembayaran);
-                        $batasPembayaran = date('Y-m-d', strtotime($tanggalPembayaran . ' +30 day')); // Tentukan batas pembayaran untuk pembayaran awal
-                        mysqli_stmt_bind_param($stmtInsert, 'sssssss', $tanggalPembayaran, $batasPembayaran, $durasiSewa, $statusPembayaran, $idPenyewa, $jatuhTempo, $idPemesanan);
-    
-                        if (mysqli_stmt_execute($stmtInsert)) {
+            if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unggah_bukti'])) {
+                if (isset($_FILES['bukti_transfer']) && $_FILES['bukti_transfer']['error'] == 0) {
+                    // Tentukan direktori tujuan unggah
+                    $targetDir = "uploads/";
+                    $fileName = basename($_FILES['bukti_transfer']['name']);
+                    $targetFilePath = $targetDir . $fileName;
+                    $fileType = strtolower(pathinfo($targetFilePath, PATHINFO_EXTENSION));
+            
+                    // Validasi ekstensi file
+                    $validExtensions = array("jpg", "jpeg", "png", "gif", "pdf");
+                    if (!in_array($fileType, $validExtensions)) {
+                        echo "<script>alert('Format file tidak valid. Hanya file JPG, PNG, JPEG, GIF, dan PDF yang diperbolehkan.');</script>";
+                        exit;
+                    }
+            
+                    $metodePembayaran = isset($_POST['pembayaran']) ? $_POST['pembayaran'] : '';
+            
+                    // Validasi apakah metode pembayaran sudah dipilih
+                    if (empty($metodePembayaran)) {
+                        echo "<script>alert('Silakan pilih metode pembayaran terlebih dahulu.');</script>";
+                        exit;
+                    }
+            
+                    // Proses unggah file
+                    if (move_uploaded_file($_FILES["bukti_transfer"]["tmp_name"], $targetFilePath)) {
+                        mysqli_begin_transaction($koneksi); // Memulai transaksi
+                        try {
+                            // Update data pemesanan dengan bukti transfer
+                            $sqlUpdatePemesanan = "UPDATE pemesanan SET bukti_transfer = ? WHERE id_pemesanan = ?";
+                            $stmtUpdatePemesanan = mysqli_prepare($koneksi, $sqlUpdatePemesanan);
+                            mysqli_stmt_bind_param($stmtUpdatePemesanan, 'ss', $fileName, $idPemesanan);
+                            if (!mysqli_stmt_execute($stmtUpdatePemesanan)) {
+                                throw new Exception("Gagal memperbarui data pemesanan.");
+                            }
+            
+                            // Insert data ke tabel pembayaran
+                            $sqlInsertPembayaran = "INSERT INTO pembayaran (tanggalPembayaran, batasPembayaran, durasiSewa, StatusPembayaran, idPenyewa, jatuh_tempo, id_pemesanan) 
+                                                    VALUES (?, ?, ?, ?, ?, ?, ?)";
+                            $stmtInsert = mysqli_prepare($koneksi, $sqlInsertPembayaran);
+                            $batasPembayaran = date('Y-m-d', strtotime($tanggalPembayaran . ' +30 day'));
+                            mysqli_stmt_bind_param($stmtInsert, 'sssssss', $tanggalPembayaran, $batasPembayaran, $durasiSewa, $statusPembayaran, $idPenyewa, $jatuhTempo, $idPemesanan);
+                            if (!mysqli_stmt_execute($stmtInsert)) {
+                                throw new Exception("Gagal menyimpan data pembayaran.");
+                            }
+            
+                            // Ambil ID pembayaran yang baru saja diinsert
+                            $idPembayaran = mysqli_insert_id($koneksi);
+            
+                            // Insert data ke tabel transaksi
+                            $sqlGetStatusUangMuka = "SELECT status_uang_muka, uang_muka FROM pemesanan WHERE id_pemesanan = ?";
+                            $stmtGetStatusUangMuka = mysqli_prepare($koneksi, $sqlGetStatusUangMuka);
+                            mysqli_stmt_bind_param($stmtGetStatusUangMuka, 'i', $idPemesanan); // Gunakan tipe 'i' untuk integer
+                            if (!mysqli_stmt_execute($stmtGetStatusUangMuka)) {
+                                throw new Exception("Gagal mengambil data status uang muka.");
+                            }
+                            mysqli_stmt_bind_result($stmtGetStatusUangMuka, $statusUangMuka, $uangMuka);
+                            mysqli_stmt_fetch($stmtGetStatusUangMuka);
+                            mysqli_stmt_close($stmtGetStatusUangMuka);
+
+                            // Tentukan jenis transaksi berdasarkan status uang muka
+                            // $jenisTransaksi = ($statusUangMuka == 'DP 30%') ? 'DP 30%' : 'Bayar Penuh';
+                            $tanggalTransaksi = date('Y-m-d H:i:s');
+            
+                            $sqlInsertTransaksi = "INSERT INTO transaksi (id_penyewa, id_pemesanan, id_pembayaran, jenis_transaksi, jumlah_transaksi, tanggal_transaksi, metode_bayar) 
+                                                   VALUES (?, ?, ?, ?, ?, ?, ?)";
+                            $stmtInsertTransaksi = mysqli_prepare($koneksi, $sqlInsertTransaksi);
+                            mysqli_stmt_bind_param($stmtInsertTransaksi, 'iisssss', $idPenyewa, $idPemesanan, $idPembayaran, $statusUangMuka, $uangMuka, $tanggalTransaksi, $metodePembayaran);
+                            if (!mysqli_stmt_execute($stmtInsertTransaksi)) {
+                                throw new Exception("Gagal menyimpan data transaksi.");
+                            }
+            
                             // Update status pemesanan menjadi 'Menunggu Dikonfirmasi'
                             $sqlUpdatePemesananStatus = "UPDATE pemesanan SET status = 'Menunggu Dikonfirmasi' WHERE id_pemesanan = ?";
                             $stmtUpdatePemesananStatus = mysqli_prepare($koneksi, $sqlUpdatePemesananStatus);
                             mysqli_stmt_bind_param($stmtUpdatePemesananStatus, 's', $idPemesanan);
-                            if (mysqli_stmt_execute($stmtUpdatePemesananStatus)) {
-                                // Commit transaksi jika semuanya sukses
-                                mysqli_commit($koneksi);
-                                echo "<script>
+                            if (!mysqli_stmt_execute($stmtUpdatePemesananStatus)) {
+                                throw new Exception("Gagal memperbarui status pemesanan.");
+                            }
+            
+                            // Commit transaksi jika semua sukses
+                            mysqli_commit($koneksi);
+                            echo "<script>
                                 alert('Pembayaran berhasil diproses. Status pemesanan kini Menunggu Konfirmasi.');
                                 window.location.href = 'status_pembayaran.php?idPemesanan={$idPemesanan}&idPenyewa={$idPenyewa}';
                             </script>";
-                            } else {
-                                throw new Exception("Gagal memperbarui status pemesanan. Silakan coba lagi.");
-                            }
-                        } else {
-                            throw new Exception("Gagal menyimpan pembayaran. Pastikan informasi pembayaran telah benar.");
+                        } catch (Exception $e) {
+                            // Rollback jika terjadi kesalahan
+                            mysqli_rollback($koneksi);
+                            echo "<script>alert('Terjadi kesalahan: " . $e->getMessage() . "');</script>";
                         }
                     } else {
-                        throw new Exception("Gagal memperbarui pemesanan. Silakan coba lagi.");
+                        echo "<script>alert('Gagal mengunggah file.');</script>";
                     }
-                } catch (Exception $e) {
-                    // Jika ada error, rollback transaksi
-                    mysqli_rollback($koneksi);
-                    echo "<script>alert('Terjadi kesalahan: " . $e->getMessage() . "');</script>";
                 }
             }
         }
-    }
+    }            
 ?>
 
 <!DOCTYPE html>

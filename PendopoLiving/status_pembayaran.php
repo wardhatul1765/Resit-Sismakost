@@ -11,7 +11,7 @@ if (empty($idPemesanan) || empty($idPenyewa)) {
 }
 
 // Ambil data pembayaran dan pemesanan dari database
-$sql = "SELECT p.id_pemesanan, p.status AS statusPemesanan, pm.tanggalPembayaran, pm.durasiSewa, pm.StatusPembayaran, pm.jatuh_tempo, k.namaKamar
+$sql = "SELECT p.id_pemesanan, p.status AS statusPemesanan, p.status_uang_muka, p.sisa_pembayaran, pm.tanggalPembayaran, pm.durasiSewa, pm.StatusPembayaran, pm.jatuh_tempo, k.namaKamar
         FROM pemesanan p
         JOIN pembayaran pm ON p.id_pemesanan = pm.id_pemesanan
         JOIN kamar k ON p.idKamar = k.idKamar
@@ -87,6 +87,10 @@ if (!$pembayaran) {
         <p><strong>Status Pembayaran:</strong> <span class="status"><?php echo $pembayaran['StatusPembayaran']; ?></span></p>
         <p><strong>Jatuh Tempo:</strong> <?php echo $pembayaran['jatuh_tempo']; ?></p>
         <p><strong>Status Pemesanan:</strong> <span class="status"><?php echo $pembayaran['statusPemesanan']; ?></span></p>
+
+        <?php if ($pembayaran['status_uang_muka'] == 'DP 30%' && $pembayaran['sisa_pembayaran'] > 0): ?>
+            <p><strong>Sisa Pembayaran:</strong> Rp. <?php echo number_format($pembayaran['sisa_pembayaran'], 2, ',', '.'); ?></p>
+        <?php endif; ?>
 
         <div class="back-button">
             <a href="index.php">Kembali ke Beranda</a>
