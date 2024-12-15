@@ -349,7 +349,7 @@ function fetchPendingOrders() {
 
             <!-- Links / Navigation -->
             <div class="nav-links">
-                <a href="dashboard.php?page=dashboard">Dashboard</a>
+                <a href="dashboard.php?page=dashboard">Beranda</a>
                 <a href="dashboard.php?page=fasilitas">Fasilitas</a>
                 <a href="dashboard.php?page=kamar">Kamar</a>
                 <a href="dashboard.php?page=penyewa">Penyewa</a>

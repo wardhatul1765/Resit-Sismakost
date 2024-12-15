@@ -1,9 +1,10 @@
 <?php
 $tahunDipilih = isset($_GET['tahun']) ? intval($_GET['tahun']) : date('Y');
 
-$sql = "SELECT mulai_menempati_kos AS tanggal, uang_muka AS harga_sewa 
-        FROM pemesanan 
-        WHERE YEAR(mulai_menempati_kos) = ?";
+// Query untuk mengambil data transaksi berdasarkan tahun yang dipilih
+$sql = "SELECT tanggal_transaksi AS tanggal, jumlah_transaksi AS harga_sewa 
+        FROM transaksi 
+        WHERE YEAR(tanggal_transaksi) = ?";
 $stmt = $koneksi->prepare($sql);
 $stmt->bind_param("i", $tahunDipilih);
 $stmt->execute();
@@ -19,7 +20,7 @@ $penyewa_per_bulan = [];
 $pendapatan_per_bulan = [];
 foreach ($data as $row) {
     $date = strtotime($row['tanggal']);
-    $month = date('M', $date);
+    $month = date('M', $date); // Bulan dalam format tiga huruf, seperti 'Jan', 'Feb', dll.
     $harga_sewa = floatval($row['harga_sewa']);
 
     if (!isset($penyewa_per_bulan[$month])) {
@@ -53,7 +54,6 @@ $penyewa_per_bulan = [
 ?>
 
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -72,12 +72,9 @@ $penyewa_per_bulan = [
             <div class="header">
                 <h4 id="big">Data Analisis Power BI</h4>
             </div>
-            <!-- <div class="items-list"> -->
-                <!-- Embed Power BI -->
-                <div class="item">
-                <iframe title="Project Kost" width="600" height="373.5" src="https://app.powerbi.com/view?r=eyJrIjoiYzIwYWQyYzYtYmU4Ni00NDJjLWIxODQtMzc1ZTVmNmE4YjdhIiwidCI6IjUyNjNjYzgxLTU5MTItNDJjNC1hYmMxLWQwZjFiNjY4YjUzMCIsImMiOjEwfQ%3D%3D" frameborder="0" allowFullScreen="true"></iframe>
-                </div>
-            <!-- </div> -->
+            <div class="item">
+            <iframe title="kostelisa" width="1256" height="486" src="https://app.powerbi.com/view?r=eyJrIjoiZTIzZDM3OGUtMWQ2NS00Y2U2LThkNzgtODAyNmRmMGNjNDYxIiwidCI6IjUyNjNjYzgxLTU5MTItNDJjNC1hYmMxLWQwZjFiNjY4YjUzMCIsImMiOjEwfQ%3D%3D" frameborder="0" allowFullScreen="true"></iframe>
+            </div>
         </div>
     </div>
 
@@ -183,34 +180,6 @@ $penyewa_per_bulan = [
                 },
                 plugins: { legend: { display: false } },
                 animation: { duration: 1000 }
-            }
-        });
-
-        // Grafik Penyewa per Bulan
-        const ctxPenyewa = document.getElementById('penyewa-chart').getContext('2d');
-        new Chart(ctxPenyewa, {
-            type: 'bar',
-            data: {
-                labels: penyewaData.labels, 
-                datasets: [{
-                    label: 'Penyewa per Bulan',
-                    data: penyewaData.values_penyewa,
-                    backgroundColor: '#60a5fa',
-                    borderWidth: 2,
-                    borderRadius: 5
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    x: {
-                        grid: { color: '#1e293b' }
-                    },
-                    y: {
-                        ticks: { display: true }
-                    }
-                },
-                plugins: { legend: { display: false } }
             }
         });
     </script>
