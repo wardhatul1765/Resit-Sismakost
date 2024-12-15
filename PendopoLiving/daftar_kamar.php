@@ -61,7 +61,7 @@
                 if (!empty($row['foto'])) {
                     echo "<img src='path/to/folder/" . $row['foto'] . "' alt='" . $row['namaKamar'] . "' class='room-photo' />";
                 } else {
-                    echo "<img src='default-image.jpg' alt='Foto tidak tersedia' class='room-photo' />";
+                    echo "<img src='img/Kamar.jpg' alt='Foto tidak tersedia' class='room-photo' />";
                 }
                 echo "<p>Harga: Rp. " . number_format($row['harga'], 0, ',', '.') . "</p>";
                 echo "<p>Status: " . $row['status'] . "</p>";

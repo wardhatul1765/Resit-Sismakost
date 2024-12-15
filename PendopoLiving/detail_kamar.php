@@ -158,7 +158,7 @@ $deskripsi = $row['deskripsi'];
             <!-- Menampilkan foto dari path yang disimpan di database -->
             <img src="uploads/<?= $foto ?>" alt="<?= $namaKamar ?>" class="room-photo" />
         <?php else: ?>
-            <img src="default-image.jpg" alt="Foto tidak tersedia" class="room-photo" />
+            <img src="img/Kamar.jpg" alt="Foto tidak tersedia" class="room-photo" />
         <?php endif; ?>
 
         <!-- Detail Kamar -->
