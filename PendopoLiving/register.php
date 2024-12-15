@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
         
         // Masukkan data ke dalam database tanpa fotoJaminan
-        $sql = "INSERT INTO penyewa (namaPenyewa, noTelepon, email, password) VALUES (?, ?, ?, ?)"; // Remove fotoJaminan from query
+        $sql = "INSERT INTO penyewa (namaPenyewa, noTelepon, email, password) VALUES (?, ?, ?, ?)";
         $stmt = $koneksi->prepare($sql);
         $stmt->bind_param("ssss", $namaPenyewa, $noTelepon, $email, $hashed_password);
         
@@ -39,6 +39,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daftar</title>
     <link rel="stylesheet" href="style.css">
+    <script>
+        // JavaScript untuk otomatis menambahkan '08' pada input nomor telepon
+        function autoFillPhone() {
+            var phoneInput = document.getElementById('noTelepon');
+            var phoneValue = phoneInput.value.replace(/\D/g, ''); // Hapus semua karakter non-digit
+            
+            // Jika nomor tidak dimulai dengan 08, tambahkan 08
+            if (!phoneValue.startsWith('08')) {
+                phoneValue = '08' + phoneValue.substring(2);
+            }
+            
+            phoneInput.value = phoneValue; // Atur nilai input dengan nomor yang valid
+        }
+    </script>
 </head>
 <body>
     <div class="wrapper">
@@ -46,11 +60,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <h1>Daftar</h1>
 
             <div class="input-box">
-                <input type="text" name="namaPenyewa" placeholder="Nama" required>
+                <input type="text" name="namaPenyewa" placeholder="Nama Lengkap" required>
             </div>
 
             <div class="input-box">
-                <input type="text" name="noTelepon" placeholder="Nomor Telepon" required>
+                <input type="tel" id="noTelepon" name="noTelepon" placeholder="Nomor Telepon (08xxxx)" required 
+                       oninput="autoFillPhone()">
             </div>
 
             <div class="input-box">

@@ -149,7 +149,7 @@ elseif (isset($_POST['reset_password']) && isset($_SESSION['isTokenVerified']) &
                 </div>
                 <button type="submit" name="verify_token" class="btn">Verifikasi Kode</button>
                 <?php if ($message): ?>
-                    <p style="color: red;"><?php echo $message; ?></p>
+                    <p style="color: green;"><?php echo $message; ?></p>
                 <?php endif; ?>
             </form>
 

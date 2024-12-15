@@ -62,108 +62,143 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $subject = $_POST['subject'];
         $message = $_POST['message'];
 
-        // Validasi apakah pengguna memiliki pemesanan aktif
-        $queryCheck = "SELECT id_pemesanan FROM pemesanan WHERE id_penyewa = ? AND status = 'Dikonfirmasi'";
-        $stmtCheck = $koneksi->prepare($queryCheck);
-        $stmtCheck->bind_param("i", $idPenyewa);
-        $stmtCheck->execute();
-        $resultCheck = $stmtCheck->get_result();
+        // Mulai transaksi
+        $koneksi->begin_transaction();
 
-        if ($resultCheck->num_rows > 0) {
-            // Jika ada id_pemesanan dengan status Dikonfirmasi, lanjutkan dengan insert ke tabel pesan
-            $queryInsert = "INSERT INTO pesan (idPenyewa, subject, message) VALUES (?, ?, ?)";
-            $stmtInsert = $koneksi->prepare($queryInsert);
-            $stmtInsert->bind_param("iss", $idPenyewa, $subject, $message);
+        try {
+            // Validasi apakah pengguna memiliki pemesanan aktif
+            $queryCheck = "SELECT id_pemesanan FROM pemesanan WHERE id_penyewa = ? AND status IN ('Menunggu Pembayaran', 'Menunggu Dikonfirmasi', 'Dikonfirmasi', 'Perpanjangan')";
+            $stmtCheck = $koneksi->prepare($queryCheck);
+            $stmtCheck->bind_param("i", $idPenyewa);
+            $stmtCheck->execute();
+            $resultCheck = $stmtCheck->get_result();
 
-            if ($stmtInsert->execute()) {
-                echo "<script>alert('Pengajuan berhasil dikirim. Harap tunggu konfirmasi admin.');</script>";
-                echo "<script>window.location.href = 'pesananku.php';</script>";
+            if ($resultCheck->num_rows > 0) {
+                // Jika ada id_pemesanan dengan status Dikonfirmasi, lanjutkan dengan insert ke tabel pesan
+                $queryInsert = "INSERT INTO pesan (idPenyewa, subject, message) VALUES (?, ?, ?)";
+                $stmtInsert = $koneksi->prepare($queryInsert);
+                $stmtInsert->bind_param("iss", $idPenyewa, $subject, $message);
+
+                if ($stmtInsert->execute()) {
+                    // Commit transaksi jika sukses
+                    $koneksi->commit();
+                    echo "<script>alert('Pengajuan berhasil dikirim. Harap tunggu konfirmasi admin.');</script>";
+                    echo "<script>window.location.href = 'pesananku.php';</script>";
+                } else {
+                    // Rollback transaksi jika insert gagal
+                    $koneksi->rollback();
+                    echo "<script>alert('Gagal mengirim alasan. Coba lagi nanti.');</script>";
+                }
             } else {
-                echo "<script>alert('Gagal mengirim alasan. Coba lagi nanti.');</script>";
+                // Rollback transaksi jika tidak memiliki pemesanan aktif
+                $koneksi->rollback();
+                echo "<script>alert('Anda tidak memiliki pemesanan aktif untuk keluar dari kost.');</script>";
+                echo "<script>history.back();</script>";
             }
-        } else {
-            // Jika tidak memiliki pemesanan aktif
-            echo "<script>alert('Anda tidak memiliki pemesanan aktif untuk keluar dari kost.');</script>";
+        } catch (Exception $e) {
+            // Rollback transaksi jika terjadi kesalahan
+            $koneksi->rollback();
+            echo "<script>alert('Terjadi kesalahan. Coba lagi nanti.');</script>";
             echo "<script>history.back();</script>";
         }
     }
+
 
     // Proses upload bukti transfer
     if (isset($_POST['unggah_bukti']) && isset($_FILES['bukti_transfer'])) {
         $idPemesanan = $_POST['idPemesanan'];
         $idPembayaran = $_POST['idPembayaran'];
-
+    
         // Proses unggah file
         $targetDir = "uploads/";
         $fileName = basename($_FILES['bukti_transfer']['name']);
         $targetFilePath = $targetDir . $fileName;
         $metodePembayaran = isset($_POST['metode_pembayaran']) ? $_POST['metode_pembayaran'] : '';
-
+    
         // Validasi apakah metode pembayaran sudah dipilih
         if (empty($metodePembayaran)) {
             echo "<script>alert('Silakan pilih metode pembayaran terlebih dahulu.');</script>";
             exit;
         }
-
-        if (move_uploaded_file($_FILES['bukti_transfer']['tmp_name'], $targetFilePath)) {
-            // Ambil sisa pembayaran dan uang muka dari database
-            $query = "SELECT sisa_pembayaran, uang_muka, id_penyewa FROM pemesanan WHERE id_pemesanan = '$idPemesanan'";
-            $resultQuery = mysqli_query($koneksi, $query);
-            $row = mysqli_fetch_assoc($resultQuery);
-
-            if ($row) {
-                $sisaPembayaran = $row['sisa_pembayaran'];
-                $uangMuka = $row['uang_muka'];
-                $idPenyewa = $row['id_penyewa']; // Ambil id penyewa
-
-                // Hitung total pembayaran
-                $totalPembayaran = $sisaPembayaran + $uangMuka;
-
-                // Update status pemesanan: set sisa_pembayaran menjadi 0 dan total pembayaran
-                $updatePemesanan = "UPDATE pemesanan 
-                                    SET sisa_pembayaran = 0, 
-                                        uang_muka = '$totalPembayaran', 
-                                        status = 'Menunggu Dikonfirmasi', 
-                                        status_uang_muka = 'Bayar Penuh', 
-                                        bukti_transfer = '$fileName'
-                                    WHERE id_pemesanan = '$idPemesanan'";
-
-                // Update status pembayaran menjadi 'Lunas'
-                $updatePembayaran = "UPDATE pembayaran 
-                                     SET statusPembayaran = 'Lunas'
-                                     WHERE idPembayaran = '$idPembayaran'";
-
-                // Jalankan kedua query
-                if (mysqli_query($koneksi, $updatePemesanan) && mysqli_query($koneksi, $updatePembayaran)) {
-                    // Tambahkan transaksi ke tabel transaksi
-                    $jenisTransaksi = 'Sisa Pembayaran'; // Jenis transaksi
-                    $tanggalTransaksi = date('Y-m-d H:i:s'); // Waktu transaksi
-                    $insertTransaksiSql = "INSERT INTO transaksi 
-                        (id_pemesanan, id_penyewa, id_pembayaran, jenis_transaksi, jumlah_transaksi, tanggal_transaksi, metode_bayar) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?)";
-
-                    // Siapkan prepared statement untuk insert transaksi
-                    $stmtTransaksi = $koneksi->prepare($insertTransaksiSql);
-                    $stmtTransaksi->bind_param("iisssss", $idPemesanan, $idPenyewa, $idPembayaran, $jenisTransaksi, $sisaPembayaran, $tanggalTransaksi, $metodePembayaran);
-
-                    // Eksekusi query insert transaksi
-                    if ($stmtTransaksi->execute()) {
-                        echo "<script>alert('Pembayaran berhasil!'); window.location.href='pesananku.php';</script>";
+    
+        // Mulai transaksi
+        $koneksi->begin_transaction();
+    
+        try {
+            if (move_uploaded_file($_FILES['bukti_transfer']['tmp_name'], $targetFilePath)) {
+                // Ambil sisa pembayaran dan uang muka dari database
+                $query = "SELECT sisa_pembayaran, uang_muka, id_penyewa FROM pemesanan WHERE id_pemesanan = '$idPemesanan'";
+                $resultQuery = mysqli_query($koneksi, $query);
+                $row = mysqli_fetch_assoc($resultQuery);
+    
+                if ($row) {
+                    $sisaPembayaran = $row['sisa_pembayaran'];
+                    $uangMuka = $row['uang_muka'];
+                    $idPenyewa = $row['id_penyewa']; // Ambil id penyewa
+    
+                    // Hitung total pembayaran
+                    $totalPembayaran = $sisaPembayaran + $uangMuka;
+    
+                    // Update status pemesanan: set sisa_pembayaran menjadi 0 dan total pembayaran
+                    $updatePemesanan = "UPDATE pemesanan 
+                                        SET sisa_pembayaran = 0, 
+                                            uang_muka = '$totalPembayaran', 
+                                            status = 'Menunggu Dikonfirmasi', 
+                                            status_uang_muka = 'Bayar Penuh', 
+                                            bukti_transfer = '$fileName'
+                                        WHERE id_pemesanan = '$idPemesanan'";
+    
+                    // Update status pembayaran menjadi 'Lunas'
+                    $updatePembayaran = "UPDATE pembayaran 
+                                         SET statusPembayaran = 'Lunas'
+                                         WHERE idPembayaran = '$idPembayaran'";
+    
+                    // Jalankan kedua query
+                    if (mysqli_query($koneksi, $updatePemesanan) && mysqli_query($koneksi, $updatePembayaran)) {
+                        // Tambahkan transaksi ke tabel transaksi
+                        $jenisTransaksi = 'Sisa Pembayaran'; // Jenis transaksi
+                        $tanggalTransaksi = date('Y-m-d H:i:s'); // Waktu transaksi
+                        $insertTransaksiSql = "INSERT INTO transaksi 
+                            (id_pemesanan, id_penyewa, id_pembayaran, jenis_transaksi, jumlah_transaksi, tanggal_transaksi, metode_bayar) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?)";
+    
+                        // Siapkan prepared statement untuk insert transaksi
+                        $stmtTransaksi = $koneksi->prepare($insertTransaksiSql);
+                        $stmtTransaksi->bind_param("iisssss", $idPemesanan, $idPenyewa, $idPembayaran, $jenisTransaksi, $sisaPembayaran, $tanggalTransaksi, $metodePembayaran);
+    
+                        // Eksekusi query insert transaksi
+                        if ($stmtTransaksi->execute()) {
+                            // Commit transaksi jika semua berhasil
+                            $koneksi->commit();
+                            echo "<script>alert('Pembayaran berhasil!'); window.location.href='pesananku.php';</script>";
+                        } else {
+                            // Rollback transaksi jika insert transaksi gagal
+                            $koneksi->rollback();
+                            echo "<script>alert('Gagal menyimpan data transaksi.');</script>";
+                        }
+    
+                        $stmtTransaksi->close(); // Menutup prepared statement
                     } else {
-                        echo "<script>alert('Gagal menyimpan data transaksi.');</script>";
+                        // Rollback transaksi jika update pemesanan atau pembayaran gagal
+                        $koneksi->rollback();
+                        echo "<script>alert('Kesalahan saat memperbarui data pembayaran.');</script>";
                     }
-
-                    $stmtTransaksi->close(); // Menutup prepared statement
                 } else {
-                    echo "<script>alert('Kesalahan saat memperbarui data pembayaran.');</script>";
+                    // Rollback transaksi jika data pemesanan tidak ditemukan
+                    $koneksi->rollback();
+                    echo "<script>alert('Data pemesanan tidak ditemukan.');</script>";
                 }
             } else {
-                echo "<script>alert('Data pemesanan tidak ditemukan.');</script>";
+                // Rollback transaksi jika gagal mengunggah bukti transfer
+                $koneksi->rollback();
+                echo "<script>alert('Gagal mengunggah bukti transfer.');</script>";
             }
-        } else {
-            echo "<script>alert('Gagal mengunggah bukti transfer.');</script>";
+        } catch (Exception $e) {
+            // Rollback transaksi jika terjadi kesalahan dalam proses
+            $koneksi->rollback();
+            echo "<script>alert('Terjadi kesalahan. Coba lagi nanti.');</script>";
         }
-    }
+    }    
 }
 ?>
 
