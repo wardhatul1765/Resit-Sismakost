@@ -369,7 +369,7 @@ function fetchPendingOrders() {
                         <!-- <?php echo $newMessages > 0 ? $newMessages : ''; ?> -->
                     </span>
                 </i>
-                <i class='bx bx-search'></i>
+                <!-- <i class='bx bx-search'></i> -->
 
                 <!-- Profile Section -->
                 <div class="profile">
