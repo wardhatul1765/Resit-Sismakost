@@ -71,20 +71,20 @@ $total_mandi_luar = $data_mandi_luar['total_kamar'];
 
       <nav id="navmenu" class="navmenu">
   <ul>
-    <li><a href="#hero" class="active">Home</a></li>
-    <li><a href="#about">About</a></li>
+    <li><a href="#hero" class="active">Beranda</a></li>
+    <li><a href="#about">Tentang</a></li>
     <li><a href="#team">Data Kamar</a></li> 
     <!-- <li><a href="#testimonials">Fasilitas Kamar</a></li> -->
     <!-- <li><a href="#pemesanan">Pemesanan</a></li> -->
-    <li><a href="#contact">Contact</a></li>
+    <li><a href="#contact">Kontak</a></li>
 
     <?php if (isset($_SESSION['namaPenyewa'])): ?>
     <li class="dropdown">
-      <a href="#" class="dropdown-toggle">Welcome, <?php echo $_SESSION['namaPenyewa']; ?>!</a>
+      <a href="#" class="dropdown-toggle">Selamat Datang <?php echo $_SESSION['namaPenyewa']; ?>!</a>
       <ul class="dropdown-menu">
         <li><a href="Profil.php">Profil</a></li> 
         <li><a href="pesananku.php">Pesananku</a></li>  
-        <li><a href="logout.php">Logout</a></li>
+        <li><a href="logout.php">Keluar</a></li>
       </ul>
     </li>
     <?php
@@ -231,7 +231,7 @@ $total_mandi_luar = $data_mandi_luar['total_kamar'];
           </script> -->
 
           
-          <div class="swiper-wrapper">
+          <!-- <div class="swiper-wrapper">
 
             <div class="swiper-slide">
             <div class="container section-title" data-aos="fade-up">
@@ -249,9 +249,9 @@ $total_mandi_luar = $data_mandi_luar['total_kamar'];
                   <i class="bi bi-quote quote-icon-right"></i>
                 </p>
               </div>
-            </div><!-- End testimonial item -->
+            </div>End testimonial item
 
-          </div>
+          </div> -->
           <div class="swiper-pagination"></div>
         </div>
 

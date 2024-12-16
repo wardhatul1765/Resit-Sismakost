@@ -109,11 +109,11 @@ $keyword = isset($_GET['cari']) ? $_GET['cari'] : '';
                                                 <a href="?page=pemesanan&aksi=edit&idPemesanan=<?php echo $data['id_pemesanan'];?>" class="btn btn-primary btn-sm">
                                                     <i class="fa fa-edit"></i> Edit
                                                 </a>
-                                                <a onclick="return confirm('Apakah Anda yakin akan menghapus data ini?')" 
+                                                <!-- <a onclick="return confirm('Apakah Anda yakin akan menghapus data ini?')" 
                                                    href="?page=pemesanan&aksi=hapus&idPemesanan=<?php echo $data['id_pemesanan'];?>" 
                                                    class="btn btn-danger btn-sm">
                                                     <i class="fa fa-trash"></i> Hapus
-                                                </a>
+                                                </a> -->
                                             </td>
                                         </tr>
                             <?php 

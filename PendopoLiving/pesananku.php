@@ -309,8 +309,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <?php
                                     $batasMenempatiKos = strtotime($row['batas_menempati_kos']); // Ubah batas menempati kos ke timestamp
                                     $tanggalSekarang = time(); // Timestamp saat ini
+                                    $hMinus7 = strtotime('-7 days', $batasMenempatiKos); // H-7 dari batas menempati kos
 
-                                    if ($batasMenempatiKos <= $tanggalSekarang): // Jika batas menempati kos sudah lewat atau sama dengan tanggal sekarang
+                                    // Tampilkan tombol perpanjang jika sekarang sudah masuk periode H-7
+                                    if ($tanggalSekarang >= $hMinus7 && $tanggalSekarang < $batasMenempatiKos): 
                                 ?>
                                     <a href="perpanjangan.php?idPemesanan=<?= $idPemesanan; ?>&idPembayaran=<?= $idPembayaran; ?>&idPenyewa=<?= $idPenyewa; ?>" class="btn btn-info btn-sm">
                                         Perpanjang Sewa

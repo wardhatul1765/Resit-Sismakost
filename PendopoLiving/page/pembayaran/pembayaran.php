@@ -89,11 +89,11 @@ $keyword = isset($_GET['cari']) ? $_GET['cari'] : '';
                                                        class="btn btn-info btn-sm">
                                                         <i class="fa fa-eye"></i> Edit
                                                     </a>
-                                                    <a onclick="return confirm('Apakah Anda yakin akan menghapus data ini?')" 
+                                                    <!-- <a onclick="return confirm('Apakah Anda yakin akan menghapus data ini?')" 
                                                        href="?page=pembayaran&aksi=hapus&id=<?php echo $data['idPembayaran']; ?>" 
                                                        class="btn btn-danger btn-sm">
                                                         <i class="fa fa-trash"></i> Hapus
-                                                    </a>
+                                                    </a> -->
                                                 </td>
                                             </tr>
                             <?php 

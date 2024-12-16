@@ -229,7 +229,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unggah_bukti'])) {
         const method = metodeSelect.value;
 
         if (method === "QRIS") {
-            instructionsDiv.innerHTML = `<h6>Scan QRIS berikut:</h6><img src="qris_code.png" alt="QRIS Code" class="img-fluid" style="max-width: 200px;">`;
+            instructionsDiv.innerHTML = `<h6>Scan QRIS berikut:</h6><img src="img/qris.jpeg" alt="QRIS Code" class="img-fluid" style="max-width: 200px;">`;
             fileUploadSection.style.display = 'block';
         } else if (method === "Bank Transfer") {
             instructionsDiv.innerHTML = `<h6>Transfer ke Rekening:</h6><p>Bank ABC<br>1234567890<br>Atas Nama: Kos Elisa</p>`;

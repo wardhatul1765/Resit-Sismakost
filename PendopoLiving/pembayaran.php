@@ -429,7 +429,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['pilih_metode'])) {
             if (method === 'QRIS') {
                 instructionsDiv.innerHTML = `
                     <h5>Scan QRIS berikut untuk pembayaran:</h5>
-                    <img src="qris_code.png" alt="QRIS Code" class="img-fluid">
+                    <img src="img/qris.jpeg" alt="QRIS Code" class="img-fluid">
                 `;
                 fileUploadSection.style.display = 'block';
             } else if (method === 'Bank Transfer') {

@@ -355,6 +355,8 @@ function fetchPendingOrders() {
                 <a href="dashboard.php?page=penyewa">Penyewa</a>
                 <a href="dashboard.php?page=pemesanan">Pemesanan</a>
                 <a href="dashboard.php?page=pembayaran">Pembayaran</a>
+                <a href="dashboard.php?page=transaksi">Transaksi</a>
+
             </div>
 
             <!-- Right Section (Notification, Search, Profile) -->
@@ -577,6 +579,12 @@ function fetchPendingOrders() {
                     include "page/pembayaran/hapus.php";
                 }
                 break;
+            
+            case "transaksi":
+                    if ($aksi == "") {
+                        include "page/transaksi/transaksi.php";
+                    }
+                    break;
 
             default:
                 echo "<h1>404 - Page Not Found</h1>";
